@@ -54,7 +54,7 @@ class clientOrtho(Client):
                         y_c = yy.item()
                         if type(self.global_protos[y_c]) != type([]):
                             proto_new[i, :] = self.global_protos[y_c].data
-                    loss += orth_loss(rep, y, self.global_protos) * self.lamda
+                    loss += intra_orth_loss(rep, y, self.global_protos) * self.lamda
 
                 optimizer.zero_grad()
                 loss.backward()
@@ -149,7 +149,7 @@ class clientOrtho(Client):
                         y_c = yy.item()
                         if type(self.global_protos[y_c]) != type([]):
                             proto_new[i, :] = self.global_protos[y_c].data
-                    loss += orth_loss(rep, y, self.global_protos) * self.lamda
+                    loss += intra_orth_loss(rep, y, self.global_protos) * self.lamda
                 train_num += y.shape[0]
                 losses += loss.item() * y.shape[0]
 
@@ -173,7 +173,7 @@ def agg_func(protos):
 
     return protos
 
-def orth_loss(rep, labels, protos):
+def intra_orth_loss(rep, labels, protos):
     # Calculate the orthogonal loss between the representation and the global prototype
     """
     参数：

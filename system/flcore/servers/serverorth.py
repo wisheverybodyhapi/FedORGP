@@ -169,7 +169,7 @@ class FedOrth(Server):
                 proto_gen = self.PROTO(list(range(self.num_classes)))
 
                 if self.loss_ver == 1:
-                    loss = orth_loss(proto, y, proto_gen, self.gamma)
+                    loss = inter_orth_loss(proto, y, proto_gen)
                 elif self.loss_ver == 2:
                     features_square = torch.sum(torch.pow(proto, 2), 1, keepdim=True)
                     centers_square = torch.sum(torch.pow(proto_gen, 2), 1, keepdim=True)
@@ -182,10 +182,7 @@ class FedOrth(Server):
                     dist = dist + one_hot * gap2
                     loss = self.CEloss(-dist, y)
                 elif self.loss_ver == 3:
-                    similarity = cos_sim(proto, proto_gen)
-                    one_hot = F.one_hot(y, self.num_classes).to(self.device)
-                    similarity = similarity + one_hot * self.margin
-                    loss = self.CEloss(-similarity, y)
+                    loss = inter_orth_loss(proto, y, proto_gen)
 
                 Gen_opt.zero_grad()
                 loss.backward()
@@ -215,21 +212,18 @@ def proto_cluster(protos_list):
 
     return proto_clusters
 
-def orth_loss(rep, labels, protos, gamma):
+def inter_orth_loss(rep, labels, protos):
     # Calculate the orthogonal loss between the representation and the global prototype
     """
     参数：
         rep (Tensor): 表征张量，形状为 (batch_size, feature_dim)。
         labels (Tensor): 真实标签，形状为 (batch_size,)。
         protos (Tensor): 原型张量，形状为 (num_classes, feature_dim)。
-        gamma (float): Weight for inter-prototype orthogonality loss.
     返回：
         Tensor: 计算得到的正交损失。
     """
     # 归一化表征和原型
     rep_norm = F.normalize(rep, p=2, dim=1)          # 形状: (batch_size, feature_dim)
-
-    protos = torch.stack(list(protos.values()))
     protos_norm = F.normalize(protos, p=2, dim=1)   # 形状: (num_classes, feature_dim)
 
     # 获取每个样本对应的原型
@@ -253,7 +247,7 @@ def orth_loss(rep, labels, protos, gamma):
     loss_inter = torch.sum(similarity_other)                             # 对所有类别求和
 
     # 合并所有损失
-    loss = loss_intra + gamma * loss_inter
+    loss = loss_intra +  loss_inter
 
     return loss           
 
