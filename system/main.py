@@ -291,7 +291,7 @@ if __name__ == "__main__":
     parser.add_argument('-nb', "--num_classes", type=int, default=10)
     parser.add_argument('-m', "--model_family", type=str, default="cnn")
     parser.add_argument('-lbs', "--batch_size", type=int, default=10)
-    parser.add_argument('-lr', "--local_learning_rate", type=float, default=0.005,
+    parser.add_argument('-lr', "--local_learning_rate", type=float, default=0.01,
                         help="Local learning rate")
     parser.add_argument('-ld', "--learning_rate_decay", type=bool, default=False)
     parser.add_argument('-ldg', "--learning_rate_decay_gamma", type=float, default=0.99)
@@ -335,7 +335,7 @@ if __name__ == "__main__":
     parser.add_argument('-nd', "--noise_dim", type=int, default=512)
     parser.add_argument('-glr', "--generator_learning_rate", type=float, default=0.005)
     parser.add_argument('-hd', "--hidden_dim", type=int, default=512)
-    parser.add_argument('-se', "--server_epochs", type=int, default=100)
+    parser.add_argument('-se', "--server_epochs", type=int, default=1)
     # FML
     parser.add_argument('-al', "--alpha", type=float, default=1.0)
     parser.add_argument('-bt', "--beta", type=float, default=1.0)
@@ -347,10 +347,6 @@ if __name__ == "__main__":
     parser.add_argument('-slr', "--server_learning_rate", type=float, default=0.01)
     # FedTGP
     parser.add_argument('-mart', "--margin_threthold", type=float, default=100.0)
-    # FedOrth
-    parser.add_argument('-mar', "--margin", type=float, default=0)
-    parser.add_argument('-ga', "--gamma", type=float, default=1.0)
-    parser.add_argument('-lv', "--loss_ver", type=int, default=1)
     # FedKTL
     parser.add_argument('-GPath', "--generator_path", type=str, default='stylegan/stylegan-xl-models/imagenet64.pkl')
     parser.add_argument('-prompt', "--stable_diffusion_prompt", type=str, default='a cat')
@@ -365,8 +361,8 @@ if __name__ == "__main__":
         args.save_folder_name_full = f'{args.save_folder_name}/{args.dataset}/{args.algorithm}/{time.time()}/'
     else:
         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-        folder_name = "{}_{}_{}_lr={}_slr={}_lamda={}_joinratio={}".format(args.algorithm, args.dataset, args.batch_size,
-                                        args.local_learning_rate, args.server_learning_rate, args.lamda, args.join_ratio)
+        folder_name = "{}_{}_{}_lamda={}_se={}_nc={}_joinratio={}_K={}_{}".format(args.algorithm, args.dataset, args.batch_size,
+                                        args.lamda, args.server_epochs, args.num_clients, args.join_ratio, args.feature_dim, args.model_family)
         args.save_folder_name_full = os.path.join(args.save_folder_name, folder_name)
     args.save_folder_name = args.save_folder_name_full
     args.model_folder_name = os.path.join(args.save_folder_name, 'model')

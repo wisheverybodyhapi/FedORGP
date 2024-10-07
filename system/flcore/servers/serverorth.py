@@ -54,9 +54,6 @@ class FedOrth(Server):
         self.CEloss = nn.CrossEntropyLoss()
         self.MSEloss = nn.MSELoss()
 
-        self.loss_ver = args.loss_ver
-        self.margin = args.margin
-        self.gamma = args.gamma
         self.lamda = args.lamda
         self.gap = torch.ones(self.num_classes, device=self.device) * 1e9
         self.min_gap = None
@@ -137,25 +134,6 @@ class FedOrth(Server):
             for k in protos.keys():
                 self.uploaded_protos.append((protos[k], k))
             uploaded_protos_per_client.append(protos)
-
-        if self.loss_ver == 2:
-            # calculate class-wise minimum distance
-            self.gap = torch.ones(self.num_classes, device=self.device) * 1e9
-            avg_protos = proto_cluster(uploaded_protos_per_client)
-            for k1 in avg_protos.keys():
-                for k2 in avg_protos.keys():
-                    if k1 > k2:
-                        dis = torch.norm(avg_protos[k1] - avg_protos[k2], p=2)
-                        self.gap[k1] = torch.min(self.gap[k1], dis)
-                        self.gap[k2] = torch.min(self.gap[k2], dis)
-            self.min_gap = torch.min(self.gap)
-            for i in range(len(self.gap)):
-                if self.gap[i] > torch.tensor(1e8, device=self.device):
-                    self.gap[i] = self.min_gap
-            self.max_gap = torch.max(self.gap)
-            self.logger.write('class-wise minimum distance', self.gap)
-            self.logger.write('min_gap', self.min_gap)
-            self.logger.write('max_gap', self.max_gap)
             
     def update_Gen(self):
         Gen_opt = torch.optim.SGD(self.PROTO.parameters(), lr=self.server_learning_rate)
@@ -165,24 +143,9 @@ class FedOrth(Server):
                                       drop_last=False, shuffle=True)
             for proto, y in proto_loader:
                 y = torch.Tensor(y).type(torch.int64).to(self.device)
-
                 proto_gen = self.PROTO(list(range(self.num_classes)))
 
-                if self.loss_ver == 1:
-                    loss = inter_orth_loss(proto, y, proto_gen)
-                elif self.loss_ver == 2:
-                    features_square = torch.sum(torch.pow(proto, 2), 1, keepdim=True)
-                    centers_square = torch.sum(torch.pow(proto_gen, 2), 1, keepdim=True)
-                    features_into_centers = torch.matmul(proto, proto_gen.T)
-                    dist = features_square - 2 * features_into_centers + centers_square.T
-                    dist = torch.sqrt(dist)
-                    
-                    one_hot = F.one_hot(y, self.num_classes).to(self.device)
-                    gap2 = min(self.max_gap.item(), self.margin_threthold)
-                    dist = dist + one_hot * gap2
-                    loss = self.CEloss(-dist, y)
-                elif self.loss_ver == 3:
-                    loss = inter_orth_loss(proto, y, proto_gen)
+                loss = inter_orth_loss(proto, y, proto_gen)
 
                 Gen_opt.zero_grad()
                 loss.backward()
