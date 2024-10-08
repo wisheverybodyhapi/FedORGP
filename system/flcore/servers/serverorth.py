@@ -3,6 +3,7 @@ import torch
 import os
 import torch.nn as nn
 import torch.nn.functional as F
+import itertools
 from flcore.clients.clientorth import clientOrtho
 from flcore.servers.serverbase import Server
 from flcore.clients.clientbase import load_item, save_item
@@ -122,6 +123,57 @@ class FedOrth(Server):
                 self.logger.write(f"An error occurred: {str(e)}")
                 self.logger.logger.exception("Exception occurred while saving models and PROTO")
 
+    def calculate_prototype_metrics(self, uploaded_protos_per_client):
+        """
+        计算类间的最小欧氏距离和余弦相似度，并记录相关指标。
+        """
+        # 初始化gap张量，存储每个类的最小距离
+        self.gap = torch.ones(self.num_classes, device=self.device) * 1e9
+
+        # 聚合每个客户端上传的原型，得到全局平均原型
+        avg_protos = proto_cluster(uploaded_protos_per_client)
+
+        # 初始化一个字典，用于存储每对类之间的余弦相似度
+        cosine_similarities = {}
+
+        # 计算每对类之间的欧氏距离和余弦相似度
+        for k1, k2 in itertools.combinations(avg_protos.keys(), 2):
+            # 计算欧氏距离
+            euclidean_distance = torch.norm(avg_protos[k1] - avg_protos[k2], p=2)
+            # 更新每个类的最小gap
+            self.gap[k1] = torch.min(self.gap[k1], euclidean_distance)
+            self.gap[k2] = torch.min(self.gap[k2], euclidean_distance)
+
+            # 计算余弦相似度
+            cosine_similarity = torch.nn.functional.cosine_similarity(
+                avg_protos[k1].unsqueeze(0), avg_protos[k2].unsqueeze(0)
+            ).item()  # 转换为Python标量
+            # 存储余弦相似度
+            cosine_similarities[(k1, k2)] = cosine_similarity
+
+        # 处理gap中未更新的类，将其设置为全局最小gap
+        self.min_gap = torch.min(self.gap)
+        self.gap[self.gap > 1e8] = self.min_gap
+
+        # 计算最大gap
+        self.max_gap = torch.max(self.gap)
+
+        # 计算全局的余弦相似度统计指标
+        cosine_sim_values = list(cosine_similarities.values())
+        avg_cosine_similarity = sum(cosine_sim_values) / len(cosine_sim_values)
+        max_cosine_similarity = max(cosine_sim_values)
+        min_cosine_similarity = min(cosine_sim_values)
+
+        # 记录欧氏距离相关指标
+        self.logger.write(f'Class-wise minimum Euclidean distance: {self.gap}')
+        self.logger.write(f'Minimum gap (Euclidean distance): {self.min_gap.item()}')
+        self.logger.write(f'Maximum gap (Euclidean distance): {self.max_gap.item()}')
+
+        # 记录余弦相似度相关指标
+        self.logger.write(f'Average Cosine Similarity: {avg_cosine_similarity:.4f}')
+        self.logger.write(f'Minimum Cosine Similarity: {min_cosine_similarity:.4f}')
+        self.logger.write(f'Maximum Cosine Similarity: {max_cosine_similarity:.4f}')
+
     def receive_protos(self):
         assert (len(self.selected_clients) > 0)
 
@@ -134,7 +186,9 @@ class FedOrth(Server):
             for k in protos.keys():
                 self.uploaded_protos.append((protos[k], k))
             uploaded_protos_per_client.append(protos)
-            
+
+        self.calculate_prototype_metrics(uploaded_protos_per_client)
+
     def update_Gen(self):
         Gen_opt = torch.optim.SGD(self.PROTO.parameters(), lr=self.server_learning_rate)
         self.PROTO.train()
