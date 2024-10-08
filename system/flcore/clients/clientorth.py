@@ -8,12 +8,40 @@ from flcore.clients.clientbase import Client, load_item, save_item
 from collections import defaultdict
 from tqdm import tqdm
 
+class OrthogonalProjectionLoss(nn.Module):
+    def __init__(self, gamma=0.5):
+        super(OrthogonalProjectionLoss, self).__init__()
+        self.gamma = gamma
+
+    def forward(self, features, labels=None):
+        device = (torch.device('cuda') if features.is_cuda else torch.device('cpu'))
+
+        #  features are normalized
+        features = F.normalize(features, p=2, dim=1)
+
+        labels = labels[:, None]  # extend dim
+
+        mask = torch.eq(labels, labels.t()).bool().to(device)
+        eye = torch.eye(mask.shape[0], mask.shape[1]).bool().to(device)
+
+        mask_pos = mask.masked_fill(eye, 0).float()
+        mask_neg = (~mask).float()
+        dot_prod = torch.matmul(features, features.t())
+
+        pos_pairs_mean = (mask_pos * dot_prod).sum() / (mask_pos.sum() + 1e-6)
+        neg_pairs_mean = (mask_neg * dot_prod).sum() / (mask_neg.sum() + 1e-6)  # TODO: removed abs
+
+        loss = (1.0 - pos_pairs_mean) + self.gamma * neg_pairs_mean
+
+        return loss
+    
 class clientOrtho(Client):
     def __init__(self, args, id, train_samples, test_samples, **kwargs):
         super().__init__(args, id, train_samples, test_samples, **kwargs)
         torch.manual_seed(0)
 
         self.loss_mse = nn.MSELoss()
+        self.op_loss = OrthogonalProjectionLoss(gamma=0.5)
         self.lamda = args.lamda
 
         self.global_protos = None
@@ -46,15 +74,10 @@ class clientOrtho(Client):
                 #     time.sleep(0.1 * np.abs(np.random.rand()))
                 rep = self.model.base(x)
                 output = self.model.head(rep)
-                loss = self.loss(output, y)
+                loss = self.loss(output, y) + self.op_loss(rep, y)
 
-                if self.global_protos is not None:
-                    proto_new = copy.deepcopy(rep.detach())
-                    for i, yy in enumerate(y):
-                        y_c = yy.item()
-                        if type(self.global_protos[y_c]) != type([]):
-                            proto_new[i, :] = self.global_protos[y_c].data
-                    loss += intra_orth_loss(rep, y, self.global_protos) * self.lamda
+                # if self.global_protos is not None:
+                #     loss += intra_orth_loss(rep, y, self.global_protos) * self.lamda
 
                 optimizer.zero_grad()
                 loss.backward()
