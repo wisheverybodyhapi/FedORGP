@@ -74,7 +74,7 @@ class clientOrtho(Client):
                 #     time.sleep(0.1 * np.abs(np.random.rand()))
                 rep = self.model.base(x)
                 output = self.model.head(rep)
-                loss = self.loss(output, y) + self.op_loss(rep, y)
+                loss = self.loss(output, y) + inter_orth_loss(rep, y, self.global_protos)
 
                 # if self.global_protos is not None:
                 #     loss += intra_orth_loss(rep, y, self.global_protos) * self.lamda
@@ -132,12 +132,7 @@ class clientOrtho(Client):
                         x = x.to(self.device)
                     y = y.to(self.device)
                     rep = self.model.base(x)
-
-                    output = float('inf') * torch.ones(y.shape[0], self.num_classes).to(self.device)
-                    for i, r in enumerate(rep):
-                        for j, pro in self.global_protos.items():
-                            if type(pro) != type([]):
-                                output[i, j] = F.cosine_similarity(r, pro, dim=0)
+                    output = self.model.head(rep)
 
                     test_acc += (torch.sum(torch.argmax(output, dim=1) == y)).item()
                     test_num += y.shape[0]
@@ -197,7 +192,7 @@ def agg_func(protos):
     return protos
 
 def intra_orth_loss(rep, labels, protos):
-    # Calculate the orthogonal loss between the representation and the global prototype
+    # Calculate the orthogonal loss between the representation and the global prototype of the same class
     """
     参数：
         rep (Tensor): 表征张量，形状为 (batch_size, feature_dim)。
@@ -220,3 +215,49 @@ def intra_orth_loss(rep, labels, protos):
     loss_intra = torch.sum(loss_intra)
 
     return loss_intra
+
+def inter_orth_loss(rep, labels, protos):
+    # Calculate the orthogonal loss between the representation and the global prototype of the same class
+    """
+    参数：
+        rep (Tensor): 表征张量，形状为 (batch_size, feature_dim)。
+        labels (Tensor): 真实标签，形状为 (batch_size,)。
+        protos (Tensor): 原型张量，形状为 (num_classes, feature_dim)。
+    返回：
+        Tensor: 计算得到的正交损失。
+    """
+    # 归一化表征和原型
+    rep_norm = F.normalize(rep, p=2, dim=1)   
+    protos = torch.stack(list(protos.values()))       # 形状: (batch_size, feature_dim)
+    protos_norm = F.normalize(protos, p=2, dim=1)   # 形状: (num_classes, feature_dim)
+
+    # 获取每个样本对应的原型
+    proto_of_sample = protos_norm[labels]            # 形状: (batch_size, feature_dim)
+
+    # 计算类内相似度（余弦相似度）
+    similarity_intra = torch.sum(rep_norm * proto_of_sample, dim=1)  # 形状: (batch_size,)
+    loss_intra = 1 - similarity_intra                                # 希望最大化相似度，因此最小化 (1 - 相似度)
+    loss_intra = torch.sum(loss_intra)
+    # loss_intra = loss_intra / similarity_intra.shape[0]  # 计算平均损失
+
+    # 计算与所有原型的相似度
+    similarity_all = torch.matmul(rep_norm, protos_norm.t())        # 形状: (batch_size, num_classes)
+    similarity_all = torch.abs(similarity_all)
+
+    # 创建掩码，将正确类别的相似度置零
+    mask = torch.ones_like(similarity_all)
+    mask.scatter_(1, labels.view(-1, 1), 0)                        # 正确类别相似度置零
+
+    # 只保留上三角部分的掩码，以避免双重计算
+    upper_tri_mask = torch.triu(torch.ones_like(mask), diagonal=1)
+    mask = mask * upper_tri_mask
+
+    # 计算类间损失
+    similarity_other = similarity_all * mask                        # 仅保留其他类别的相似度，并避免双重计算
+    loss_inter = torch.sum(similarity_other)                        # 对所有类别求和
+    # loss_inter = loss_inter / torch.sum(mask)                     # 计算平均损失
+
+    # 合并所有损失
+    loss = loss_intra + loss_inter
+
+    return loss
