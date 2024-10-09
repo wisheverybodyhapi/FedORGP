@@ -74,7 +74,9 @@ class clientOrtho(Client):
                 #     time.sleep(0.1 * np.abs(np.random.rand()))
                 rep = self.model.base(x)
                 output = self.model.head(rep)
-                loss = self.loss(output, y) + inter_orth_loss(rep, y, self.global_protos)
+                loss = self.loss(output, y)
+                if self.global_protos != None:
+                    loss += inter_orth_loss(rep, y, self.global_protos)
 
                 # if self.global_protos is not None:
                 #     loss += intra_orth_loss(rep, y, self.global_protos) * self.lamda

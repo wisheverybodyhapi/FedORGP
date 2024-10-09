@@ -172,13 +172,15 @@ class Server(object):
 
     def save_models(self):
         # save models
-        if self.model_folder_name != 'temp':
+        if 'temp' not in self.save_folder_name:
             if os.path.exists(self.model_folder_name) == False:
                 os.makedirs(self.model_folder_name)
 
             for client in self.clients:
                 save_item(client.model, client.role, 'model', self.model_folder_name)
             self.logger.write('finish saving models of clients')
+        else:
+            print('temp dir, no need to save models')
 
     def test_metrics(self):        
         num_samples = []

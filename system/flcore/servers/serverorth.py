@@ -110,7 +110,7 @@ class FedOrth(Server):
 
     def save_models(self):
         # save models
-        if self.save_folder_name != 'temp':
+        if 'temp' not in self.save_folder_name:
             if os.path.exists(self.model_folder_name) == False:
                 os.makedirs(self.model_folder_name)
             try:
