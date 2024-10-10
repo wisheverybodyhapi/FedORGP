@@ -28,22 +28,6 @@ class FedProto(Server):
         self.num_classes = args.num_classes
 
     def train(self):
-        # ================================
-        # ========get global proto========
-        self.selected_clients = self.select_clients()
-        for client in self.clients:
-            client.get_protos()
-
-        self.receive_protos()
-        for k, v in self.global_protos.items():
-            print(type(k), type(v))
-        try:
-            save_item(self.global_protos, self.role, 'FedProto_Global_PROTO', self.model_folder_name)
-            print('Successfully saved global prototypes')
-        except Exception as e:
-            print('Failed to save global prototypes:', e)
-        exit()
-        # ================================
         for i in range(self.start_round, self.end_round):
             s_t = time.time()
             self.selected_clients = self.select_clients()

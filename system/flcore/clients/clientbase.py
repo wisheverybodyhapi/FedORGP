@@ -40,7 +40,7 @@ class Client(object):
         else:
             try:
                 self.model = load_item(self.role, 'model', self.model_folder_name)
-                print("successfully load model from {}".format(self.model_folder_name))
+                print("client_{} successfully load model from {}".format(self.id, self.model_folder_name))
             except:
                 print("fail to load model from {}".format(self.model_folder_name))
 

@@ -67,21 +67,6 @@ class FML(Server):
         self.save_results()
         self.save_models()        
 
-    def save_models(self):
-        # save models
-        if self.save_folder_name != 'temp':
-            if os.path.exists(self.model_folder_name) == False:
-                os.makedirs(self.model_folder_name)
-            try:
-                for client in self.clients:
-                    save_item(client.model, client.role, 'model', self.model_folder_name)
-                self.logger.write('finish saving models of clients')
-                save_item(self.global_model, self.role, 'global_model', self.model_folder_name)
-                self.logger.write('finish saving global model of server')
-            except Exception as e:
-                self.logger.write(f"An error occurred: {str(e)}")
-                self.logger.logger.exception("Exception occurred while saving models and global_model")
-
     def aggregate_parameters(self):
         assert (len(self.uploaded_ids) > 0)
 

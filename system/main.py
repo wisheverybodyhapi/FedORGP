@@ -269,10 +269,12 @@ def run(args):
     print(f"\nAverage time cost: {round(np.average(time_list), 2)}s.")
     
 
-    # # Global average
-    # average_data(dataset=args.dataset, algorithm=args.algorithm, goal=args.goal, times=args.times)
+    # Global average
+    acc_mean, acc_std = average_data(results_path=args.save_folder_name, times=args.times)
+    server.logger.write("mean for best accurancy: {}".format(acc_mean))
+    server.logger.write("std for best accurancy: {}".format(acc_std))
 
-    print("All done!")
+    server.logger.write(f"Toal {args.times} trial done!!!")
 
     reporter.report()
 

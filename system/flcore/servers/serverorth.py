@@ -108,21 +108,6 @@ class FedOrth(Server):
             client.send_time_cost['num_rounds'] += 1
             client.send_time_cost['total_cost'] += 2 * (time.time() - start_time)
 
-    def save_models(self):
-        # save models
-        if 'temp' not in self.save_folder_name:
-            if os.path.exists(self.model_folder_name) == False:
-                os.makedirs(self.model_folder_name)
-            try:
-                for client in self.clients:
-                    save_item(client.model, client.role, 'model', self.model_folder_name)
-                self.logger.write('finish saving models of clients')
-                save_item(self.PROTO, self.role, 'PROTO', self.model_folder_name)
-                self.logger.write('finish saving PROTO of server')
-            except Exception as e:
-                self.logger.write(f"An error occurred: {str(e)}")
-                self.logger.logger.exception("Exception occurred while saving models and PROTO")
-
     def calculate_prototype_metrics(self, uploaded_protos_per_client):
         """
         计算类间的最小欧氏距离和余弦相似度，并记录相关指标。

@@ -40,8 +40,11 @@ class Server(object):
         self.role = 'Server'
         self.save_folder_name = args.save_folder_name
         self.model_folder_name = args.model_folder_name
+        self.cur_time = times
+        self.total_times = args.times
 
         self.logger = Logger(self.save_folder_name, "log.log")
+        self.logger.write("=" * 50 + ' {}th trial '.format(self.cur_time) + "=" * 50)
         self.logger.write("=" * 50)
         for arg in vars(args):
             self.logger.write("{} = {}".format(arg, getattr(args, arg)))
@@ -62,7 +65,6 @@ class Server(object):
         self.rs_test_auc = []
         self.rs_train_loss = []
 
-        self.times = times
         self.eval_gap = args.eval_gap
         self.client_drop_rate = args.client_drop_rate
         self.train_slow_rate = args.train_slow_rate
@@ -155,7 +157,7 @@ class Server(object):
 
         # save results
         if (len(self.rs_test_acc)):
-            file_path = os.path.join(self.save_folder_name, 'results.h5')
+            file_path = os.path.join(self.save_folder_name, 'results' + '_' + str(self.cur_time) + '.h5')
             self.logger.write("File path: " + file_path)
 
             with h5py.File(file_path, 'w') as hf:
@@ -163,22 +165,42 @@ class Server(object):
                 hf.create_dataset('rs_test_auc', data=self.rs_test_auc)
                 hf.create_dataset('rs_train_loss', data=self.rs_train_loss)
         
-        if 'temp' in self.save_folder_name:
-            try:
-                shutil.rmtree(self.save_folder_name)
-                self.logger.write('Deleted.')
-            except:
-                self.logger.write('Already deleted.')
+        # if 'temp' in self.save_folder_name:
+        #     try:
+        #         shutil.rmtree(self.save_folder_name)
+        #         self.logger.write('Deleted.')
+        #     except:
+        #         self.logger.write('Already deleted.')
 
     def save_models(self):
-        # save models
+        # only save last trial model
+        if (1 + self.cur_time) != self.total_times:
+            return
+        
         if 'temp' not in self.save_folder_name:
             if os.path.exists(self.model_folder_name) == False:
                 os.makedirs(self.model_folder_name)
+            # save models
+            try:
+                for client in self.clients:
+                    save_item(client.model, client.role, 'model', self.model_folder_name)
+                self.logger.write('finish saving models of clients')
+                if hasattr(self, 'global_model'):
+                    save_item(self.global_model, self.role, 'global_model', self.model_folder_name)
+                    self.logger.write('finish saving global model of server')
+                if hasattr(self, 'generative_model'): # FedGen
+                    save_item(self.generative_model, self.role, 'generative_model', self.model_folder_name)
+                    self.logger.write('finish saving generative model of server')
+                if hasattr(self, 'PROTO'): # FedTGP, FedOrth
+                    save_item(self.PROTO, self.role, 'PROTO', self.model_folder_name)
+                    self.logger.write('finish saving PROTO of server')
+                if hasattr(self, 'global_protos'): # FedProto
+                    save_item(self.global_protos, self.role, 'global_protos', self.model_folder_name)
+                    self.logger.write('finish saving global_protos of server')
+            except Exception as e:
+                self.logger.write(f"An error occurred: {str(e)}")
 
-            for client in self.clients:
-                save_item(client.model, client.role, 'model', self.model_folder_name)
-            self.logger.write('finish saving models of clients')
+            
         else:
             print('temp dir, no need to save models')
 

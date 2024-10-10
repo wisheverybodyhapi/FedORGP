@@ -128,21 +128,6 @@ class FedTGP(Server):
         self.logger.write('min_gap: {}'.format(self.min_gap))
         self.logger.write('max_gap: {}'.format(self.max_gap))
 
-    def save_models(self):
-        # save models
-        if self.save_folder_name != 'temp':
-            if os.path.exists(self.model_folder_name) == False:
-                os.makedirs(self.model_folder_name)
-            try:
-                for client in self.clients:
-                    save_item(client.model, client.role, 'model', self.model_folder_name)
-                self.logger.write('finish saving models of clients')
-                save_item(self.PROTO, self.role, 'PROTO', self.model_folder_name)
-                self.logger.write('finish saving PROTO of server')
-            except Exception as e:
-                self.logger.write(f"An error occurred: {str(e)}")
-                self.logger.logger.exception("Exception occurred while saving models and PROTO")
-
     def update_Gen(self):
         Gen_opt = torch.optim.SGD(self.PROTO.parameters(), lr=self.server_learning_rate)
         self.PROTO.train()
