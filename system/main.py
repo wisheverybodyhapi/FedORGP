@@ -347,6 +347,8 @@ if __name__ == "__main__":
     parser.add_argument('-slr', "--server_learning_rate", type=float, default=0.01)
     # FedTGP
     parser.add_argument('-mart', "--margin_threthold", type=float, default=100.0)
+    # FedOrth
+    parser.add_argument('-gam', "--gamma", type=float, default=1.0)
     # FedKTL
     parser.add_argument('-GPath', "--generator_path", type=str, default='stylegan/stylegan-xl-models/imagenet64.pkl')
     parser.add_argument('-prompt', "--stable_diffusion_prompt", type=str, default='a cat')
@@ -359,11 +361,13 @@ if __name__ == "__main__":
 
     if args.save_folder_name == 'temp':
         args.save_folder_name_full = f'{args.save_folder_name}/{args.dataset}/{args.algorithm}/{time.time()}/'
+    elif args.algorithm == 'FedOrth':
+        folder_name = "{}_{}_{}_lamda={}_gamma={}_se={}_nc={}_joinratio={}_K={}_{}".format(args.algorithm, args.dataset, args.batch_size,
+                                        args.lamda, args.gamma, args.server_epochs, args.num_clients, args.join_ratio, args.feature_dim, args.model_family)
     else:
-        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
         folder_name = "{}_{}_{}_lamda={}_se={}_nc={}_joinratio={}_K={}_{}".format(args.algorithm, args.dataset, args.batch_size,
                                         args.lamda, args.server_epochs, args.num_clients, args.join_ratio, args.feature_dim, args.model_family)
-        args.save_folder_name_full = os.path.join(args.save_folder_name, folder_name)
+    args.save_folder_name_full = os.path.join(args.save_folder_name, folder_name)
     args.save_folder_name = args.save_folder_name_full
     args.model_folder_name = os.path.join(args.save_folder_name, 'model')
 
