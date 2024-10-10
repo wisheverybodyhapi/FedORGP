@@ -34,7 +34,7 @@ def setup_seed(seed):#设置种子
      torch.backends.cudnn.deterministic = True
 
 warnings.simplefilter("ignore")
-setup_seed(0)
+torch.manual_seed(0)
 
 def run(args):
 
