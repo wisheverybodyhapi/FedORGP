@@ -41,8 +41,8 @@ class clientOrtho(Client):
         torch.manual_seed(0)
 
         self.loss_mse = nn.MSELoss()
-        self.op_loss = OrthogonalProjectionLoss(gamma=0.5)
         self.lamda = args.lamda
+        self.gamma = args.gamma
 
         self.global_protos = None
         self.protos = None
@@ -76,7 +76,7 @@ class clientOrtho(Client):
                 output = self.model.head(rep)
                 loss = self.loss(output, y)
                 if self.global_protos != None:
-                    loss += inter_orth_loss(rep, y, self.global_protos)
+                    loss = loss + self.lamda * intra_orth_loss(rep, y, self.global_protos) + self.gamma * inter_orth_loss(rep, y, self.global_protos)
 
                 # if self.global_protos is not None:
                 #     loss += intra_orth_loss(rep, y, self.global_protos) * self.lamda
@@ -215,6 +215,7 @@ def intra_orth_loss(rep, labels, protos):
     similarity_intra = torch.sum(rep_norm * proto_of_sample, dim=1)  # 形状: (batch_size,)
     loss_intra = 1 - similarity_intra                                # 希望最大化相似度，因此最小化 (1 - 相似度)
     loss_intra = torch.sum(loss_intra)
+    loss_intra = loss_intra / similarity_intra.shape[0]  # 计算平均损失
 
     return loss_intra
 
@@ -233,15 +234,6 @@ def inter_orth_loss(rep, labels, protos):
     protos = torch.stack(list(protos.values()))       # 形状: (batch_size, feature_dim)
     protos_norm = F.normalize(protos, p=2, dim=1)   # 形状: (num_classes, feature_dim)
 
-    # 获取每个样本对应的原型
-    proto_of_sample = protos_norm[labels]            # 形状: (batch_size, feature_dim)
-
-    # 计算类内相似度（余弦相似度）
-    similarity_intra = torch.sum(rep_norm * proto_of_sample, dim=1)  # 形状: (batch_size,)
-    loss_intra = 1 - similarity_intra                                # 希望最大化相似度，因此最小化 (1 - 相似度)
-    loss_intra = torch.sum(loss_intra)
-    # loss_intra = loss_intra / similarity_intra.shape[0]  # 计算平均损失
-
     # 计算与所有原型的相似度
     similarity_all = torch.matmul(rep_norm, protos_norm.t())        # 形状: (batch_size, num_classes)
     similarity_all = torch.abs(similarity_all)
@@ -257,9 +249,6 @@ def inter_orth_loss(rep, labels, protos):
     # 计算类间损失
     similarity_other = similarity_all * mask                        # 仅保留其他类别的相似度，并避免双重计算
     loss_inter = torch.sum(similarity_other)                        # 对所有类别求和
-    # loss_inter = loss_inter / torch.sum(mask)                     # 计算平均损失
+    loss_inter = loss_inter / torch.sum(mask)                     # 计算平均损失
 
-    # 合并所有损失
-    loss = loss_intra + loss_inter
-
-    return loss
+    return loss_inter
