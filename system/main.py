@@ -25,16 +25,9 @@ from flcore.servers.serverktl_stable_diffusion import FedKTL as FedKTL_stable_di
 
 from utils.result_utils import average_data
 from utils.mem_utils import MemReporter
-
-def setup_seed(seed):#设置种子
-     torch.manual_seed(seed)
-     torch.cuda.manual_seed_all(seed)
-     np.random.seed(seed)
-     random.seed(seed)
-     torch.backends.cudnn.deterministic = True
+from utils.seed_utils import setup_seed
 
 warnings.simplefilter("ignore")
-torch.manual_seed(0)
 
 def run(args):
 
@@ -284,6 +277,7 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     # general
+    parser.add_argument('-sd', "--seed", type=int, default=0, help="random seed")
     parser.add_argument('-go', "--goal", type=str, default="test", 
                         help="The goal for this experiment")
     parser.add_argument('-dev', "--device", type=str, default="cuda",
@@ -360,6 +354,9 @@ if __name__ == "__main__":
     parser.add_argument('-mu', "--mu", type=float, default=50.0)
 
     args = parser.parse_args()
+
+    # fix random seed
+    setup_seed(args.seed)
 
     if args.save_folder_name == 'temp':
         args.save_folder_name_full = f'{args.save_folder_name}/{args.dataset}/{args.algorithm}/{time.time()}/'
