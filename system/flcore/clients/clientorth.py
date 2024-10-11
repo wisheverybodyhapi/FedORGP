@@ -41,8 +41,7 @@ class clientOrtho(Client):
         torch.manual_seed(0)
 
         self.loss_mse = nn.MSELoss()
-        self.lamda = args.lamda
-        self.gamma = args.gamma
+        self.c_lamda = args.c_lamda
 
         self.global_protos = None
         self.protos = None
@@ -76,10 +75,8 @@ class clientOrtho(Client):
                 output = self.model.head(rep)
                 loss = self.loss(output, y)
                 if self.global_protos != None:
-                    loss = loss + self.lamda * intra_orth_loss(rep, y, self.global_protos) + self.gamma * inter_orth_loss(rep, y, self.global_protos)
-
-                # if self.global_protos is not None:
-                #     loss += intra_orth_loss(rep, y, self.global_protos) * self.lamda
+                    # loss = loss + self.lamda * intra_orth_loss(rep, y, self.global_protos) + self.gamma * inter_orth_loss(rep, y, self.global_protos)
+                    loss += self.c_lamda * intra_orth_loss(rep, y, self.global_protos)
 
                 optimizer.zero_grad()
                 loss.backward()

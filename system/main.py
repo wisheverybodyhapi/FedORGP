@@ -344,6 +344,8 @@ if __name__ == "__main__":
     # FedTGP
     parser.add_argument('-mart', "--margin_threthold", type=float, default=100.0)
     # FedOrth
+    parser.add_argument('-clam', "--c_lamda", type=float, default=1.0)
+    parser.add_argument('-slam', "--s_lamda", type=float, default=1.0)
     parser.add_argument('-gam', "--gamma", type=float, default=1.0)
     # FedKTL
     parser.add_argument('-GPath', "--generator_path", type=str, default='stylegan/stylegan-xl-models/imagenet64.pkl')
@@ -361,8 +363,8 @@ if __name__ == "__main__":
     if args.save_folder_name == 'temp':
         args.save_folder_name_full = f'{args.save_folder_name}/{args.dataset}/{args.algorithm}/{time.time()}/'
     elif args.algorithm == 'FedOrth':
-        folder_name = "{}_{}_{}_lamda={}_gamma={}_se={}_nc={}_joinratio={}_K={}_{}".format(args.algorithm, args.dataset, args.batch_size,
-                                        args.lamda, args.gamma, args.server_epochs, args.num_clients, args.join_ratio, args.feature_dim, args.model_family)
+        folder_name = "{}_{}_{}_clamda={}_slamda={}_gamma={}_se={}_nc={}_joinratio={}_K={}_{}".format(args.algorithm, args.dataset, args.batch_size,
+                                        args.c_lamda, args.s_lamda, args.gamma, args.server_epochs, args.num_clients, args.join_ratio, args.feature_dim, args.model_family)
         args.save_folder_name_full = os.path.join(args.save_folder_name, folder_name)
     else:
         folder_name = "{}_{}_{}_lamda={}_se={}_nc={}_joinratio={}_K={}_{}".format(args.algorithm, args.dataset, args.batch_size,
