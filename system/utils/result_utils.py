@@ -12,8 +12,8 @@ def average_data(results_path, times):
 
     acc_mean = np.mean(max_accurancy)
     acc_std = np.std(max_accurancy)
-    print("std for best accurancy:", acc_std)
-    print("mean for best accurancy:", acc_mean)
+    print("std for best accuracy:", acc_std)
+    print("mean for best accuracy:", acc_mean)
 
     return acc_mean, acc_std
 

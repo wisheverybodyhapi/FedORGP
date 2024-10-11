@@ -271,8 +271,8 @@ def run(args):
 
     # Global average
     acc_mean, acc_std = average_data(results_path=args.save_folder_name, times=args.times)
-    server.logger.write("mean for best accurancy: {}".format(acc_mean))
-    server.logger.write("std for best accurancy: {}".format(acc_std))
+    server.logger.write("mean for best accuracy: {}".format(acc_mean))
+    server.logger.write("std for best accuracy: {}".format(acc_std))
 
     server.logger.write(f"Toal {args.times} trial done!!!")
 

@@ -18,7 +18,7 @@ class Client(object):
     Base class for clients in federated learning.
     """
 
-    def __init__(self, args, id, train_samples, test_samples, **kwargs):
+    def __init__(self, args, id, train_samples, test_samples, logger, **kwargs):
         torch.manual_seed(0)
         self.algorithm = args.algorithm
         self.dataset = args.dataset
@@ -33,6 +33,7 @@ class Client(object):
         self.batch_size = args.batch_size
         self.learning_rate = args.local_learning_rate
         self.local_epochs = args.local_epochs
+        self.logger = logger
 
         # modification 2
         if self.save_folder_name == 'temp' or check_for_model(self.model_folder_name) == False:
@@ -40,9 +41,9 @@ class Client(object):
         else:
             try:
                 self.model = load_item(self.role, 'model', self.model_folder_name)
-                print("client_{} successfully load model from {}".format(self.id, self.model_folder_name))
+                self.logger.write("client_{} successfully load model from {}".format(self.id, self.model_folder_name))
             except:
-                print("fail to load model from {}".format(self.model_folder_name))
+                self.logger.write("client_{} fail to load model from {}".format(self.id, self.model_folder_name))
 
 
         self.train_slow = kwargs['train_slow']

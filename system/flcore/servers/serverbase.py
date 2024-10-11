@@ -80,7 +80,8 @@ class Server(object):
                             train_samples=len(train_data), 
                             test_samples=len(test_data), 
                             train_slow=train_slow, 
-                            send_slow=send_slow)
+                            send_slow=send_slow,
+                            logger=self.logger)
             self.clients.append(client)
 
     # random select slow clients
