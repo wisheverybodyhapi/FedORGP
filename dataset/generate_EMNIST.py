@@ -28,6 +28,7 @@ from utils.dataset_utils import check, separate_data, split_data, save_file
 random.seed(1)
 np.random.seed(1)
 num_clients = 20
+class_per_client = 7
 dir_path = "EMNIST/"
 
 
@@ -48,9 +49,9 @@ def generate_dataset(dir_path, num_clients, niid, balance, partition):
     transform = transforms.Compose([transforms.ToTensor(), transforms.Normalize([0.5], [0.5])])
 
     trainset = torchvision.datasets.EMNIST(
-        root=dir_path+"rawdata", split='digits', train=True, download=True, transform=transform)
+        root=dir_path+"rawdata", split='balanced', train=True, download=True, transform=transform)
     testset = torchvision.datasets.EMNIST(
-        root=dir_path+"rawdata", split='digits', train=False, download=True, transform=transform)
+        root=dir_path+"rawdata", split='balanced', train=False, download=True, transform=transform)
     trainloader = torch.utils.data.DataLoader(
         trainset, batch_size=len(trainset.data), shuffle=False)
     testloader = torch.utils.data.DataLoader(
@@ -80,7 +81,7 @@ def generate_dataset(dir_path, num_clients, niid, balance, partition):
     #     dataset.append(dataset_image[idx])
 
     X, y, statistic = separate_data((dataset_image, dataset_label), num_clients, num_classes, 
-                                    niid, balance, partition, class_per_client=2)
+                                    niid, balance, partition, class_per_client=class_per_client)
     train_data, test_data = split_data(X, y)
     save_file(config_path, train_path, test_path, train_data, test_data, num_clients, num_classes, 
         statistic, niid, balance, partition)

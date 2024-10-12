@@ -15,7 +15,13 @@ class BaseHeadSplit(nn.Module):
     def __init__(self, args, cid):
         super().__init__()
 
-        self.base = eval(args.models[cid % len(args.models)])
+        self.model_name = args.models[cid % len(args.models)]
+        self.base = eval(self.model_name)
+
+        # 检查是否为 EMNIST 数据集，需要调整输入通道数
+        if args.dataset == 'EMNIST':
+            self.modify_input_channels()
+
         head = None # you may need more code for pre-existing heterogeneous heads
         if hasattr(self.base, 'heads'):
             head = self.base.heads
@@ -47,6 +53,52 @@ class BaseHeadSplit(nn.Module):
         out = self.base(x)
         out = self.head(out)
         return out
+    
+    def modify_input_channels(self):
+        """
+        修改基础模型的第一个卷积层以适配灰度图像（单通道）。
+        """
+        if 'FedAvgCNN' in self.model_name:
+            # 对于自定义的 FedAvgCNN 模型
+            in_channels = 1
+            out_channels = self.base.conv1[0].out_channels
+            kernel_size = self.base.conv1[0].kernel_size
+            stride = self.base.conv1[0].stride
+            self.base.conv1[0] = nn.Conv2d(in_channels, out_channels, kernel_size=kernel_size, stride=stride)
+            self.base.fc1[0] = nn.Linear(1024, 512)
+        elif 'googlenet' in self.model_name.lower():
+            # 对于 GoogLeNet
+            in_channels = 1
+            out_channels = self.base.conv1.conv.out_channels
+            kernel_size = self.base.conv1.conv.kernel_size
+            stride = self.base.conv1.conv.stride
+            padding = self.base.conv1.conv.padding
+            bias = self.base.conv1.conv.bias
+            self.base.conv1 = nn.Conv2d(in_channels, out_channels, kernel_size=kernel_size, stride=stride, padding=padding, bias=bias)
+        elif 'mobilenet_v2' in self.model_name.lower():
+            # 对于 MobileNetV2
+            if hasattr(self.base, 'features') and isinstance(self.base.features, nn.Sequential):
+                first_conv = self.base.features[0][0]  # MobileNetV2 的第一个 Conv2d 在 features 的第一个 Sequential 模块中
+                if isinstance(first_conv, nn.Conv2d):
+                    in_channels = 1
+                    out_channels = first_conv.out_channels
+                    kernel_size = first_conv.kernel_size
+                    stride = first_conv.stride
+                    padding = first_conv.padding
+                    bias = first_conv.bias
+                    self.base.features[0][0] = nn.Conv2d(in_channels, out_channels, kernel_size=kernel_size, stride=stride, padding=padding, bias=bias)
+        elif 'resnet' in self.model_name.lower():
+            # 对于 ResNet 系列
+            if hasattr(self.base, 'conv1') and isinstance(self.base.conv1, nn.Conv2d):
+                in_channels = 1
+                out_channels = self.base.conv1.out_channels
+                kernel_size = self.base.conv1.kernel_size
+                stride = self.base.conv1.stride
+                padding = self.base.conv1.padding
+                bias = self.base.conv1.bias
+                self.base.conv1 = nn.Conv2d(in_channels, out_channels, kernel_size=kernel_size, stride=stride, padding=padding, bias=bias)
+        else:
+            raise ValueError(f'Unsupported model: {self.model_name}')
 
 class Head(nn.Module):
     def __init__(self, num_classes=10, hidden_dims=[512]):

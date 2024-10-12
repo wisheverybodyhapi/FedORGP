@@ -6,6 +6,7 @@ import torch.nn.functional as F
 from flcore.clients.clienttgp import clientTGP
 from flcore.servers.serverbase import Server
 from flcore.clients.clientbase import load_item, save_item
+from utils.model_utils import check_for_model
 from threading import Thread
 from collections import defaultdict
 from torch.utils.data import DataLoader
@@ -33,7 +34,7 @@ class FedTGP(Server):
         self.feature_dim = args.feature_dim
         self.server_hidden_dim = self.feature_dim
         
-        if args.save_folder_name == 'temp' or 'temp' not in args.save_folder_name:
+        if self.save_folder_name == 'temp' or check_for_model(self.model_folder_name) == False:
             self.PROTO = Trainable_prototypes(
                 self.num_classes, 
                 self.server_hidden_dim, 
@@ -41,6 +42,10 @@ class FedTGP(Server):
                 self.device
             ).to(self.device)
             self.logger.write(self.PROTO)
+        else:
+            self.PROTO = load_item(self.role, 'PROTO', self.model_folder_name)
+            print("Server successfully load PROTO from {}".format(self.model_folder_name))
+
         self.CEloss = nn.CrossEntropyLoss()
         self.MSEloss = nn.MSELoss()
 
