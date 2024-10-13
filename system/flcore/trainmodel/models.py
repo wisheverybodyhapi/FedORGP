@@ -22,6 +22,9 @@ class BaseHeadSplit(nn.Module):
         if args.dataset == 'EMNIST':
             self.modify_input_channels()
 
+        if args.dataset == 'Flowers102' and 'FedAvgCNN' in self.model_name:
+            self.base.fc1[0] = nn.Linear(10816, 512)
+
         head = None # you may need more code for pre-existing heterogeneous heads
         if hasattr(self.base, 'heads'):
             head = self.base.heads
