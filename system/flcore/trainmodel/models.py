@@ -2,6 +2,7 @@ import math
 import torch
 import torch.nn.functional as F
 import torchvision
+import timm 
 from torch import nn, Tensor
 from flcore.trainmodel.bilstm import *
 from flcore.trainmodel.resnet import *
@@ -18,8 +19,8 @@ class BaseHeadSplit(nn.Module):
         self.model_name = args.models[cid % len(args.models)]
         self.base = eval(self.model_name)
 
-        # 检查是否为 EMNIST 数据集，需要调整输入通道数
-        if 'EMNIST' in args.dataset:
+        # 检查是否为 MNIST 数据集，需要调整输入通道数
+        if 'MNIST' in args.dataset:
             self.modify_input_channels()
 
         if args.dataset == 'Flowers102' and 'FedAvgCNN' in self.model_name:
@@ -38,7 +39,10 @@ class BaseHeadSplit(nn.Module):
         elif hasattr(self.base, 'classifier'):
             head = self.base.classifier
             self.base.classifier = nn.AdaptiveAvgPool1d(args.feature_dim)
+        elif hasattr(self.base.model, 'classifier'):
+            self.base.model.classifier = nn.AdaptiveAvgPool1d(args.feature_dim)
         else:
+            print(f"{self.model_name} does not have a classification head.")
             raise('The base model does not have a classification head.')
 
         if hasattr(args, 'heads'):
@@ -119,6 +123,16 @@ class Head(nn.Module):
         out = self.fc(rep)
         return out
 
+###########################################################
+class DenseNet121(nn.Module):
+    def __init__(self, pretrained=False, num_classes=1000):
+        super(DenseNet121, self).__init__()
+        # 加载预训练的DenseNet121模型
+        self.model = torchvision.models.densenet121(pretrained=pretrained)
+    
+    def forward(self, x):
+        return self.model(x)
+    
 ###########################################################
 
 class CNN(nn.Module):
