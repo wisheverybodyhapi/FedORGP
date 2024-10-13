@@ -19,7 +19,7 @@ class BaseHeadSplit(nn.Module):
         self.base = eval(self.model_name)
 
         # 检查是否为 EMNIST 数据集，需要调整输入通道数
-        if args.dataset == 'EMNIST':
+        if 'EMNIST' in args.dataset:
             self.modify_input_channels()
 
         head = None # you may need more code for pre-existing heterogeneous heads
