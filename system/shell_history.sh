@@ -172,3 +172,39 @@ nohup python -u main.py -t 3 -ab 1 -jr 1 -lbs 32 -ls 1 -nc 20 -nb 102 -data Flow
 
 
 # test all when dataset=Cifar100 HMG=HtFE3
+nohup python -u main.py -t 3 -ab 1 -jr 1 -lbs 32 -ls 1 -nc 20 -nb 100 -data Cifar100 -m HtFE3 -fd 512 -did 4 -sr 0 -er 100 -algo FedProto -lam 1 --save_folder_name results/test_all_batchsize=32_dataset=Cifar100_HtFE3 > /dev/null 2>&1 &
+nohup python -u main.py -t 3 -ab 1 -jr 1 -lbs 32 -ls 1 -nc 20 -nb 100 -data Cifar100 -m HtFE3 -fd 512 -did 1 -sr 0 -er 100 -algo FedGH -se 1 --save_folder_name results/test_all_batchsize=32_dataset=Cifar100_HtFE3 > /dev/null 2>&1 &
+nohup python -u main.py -t 3 -ab 1 -jr 1 -lbs 32 -ls 1 -nc 20 -nb 100 -data Cifar100 -m HtFE3 -fd 512 -did 2 -sr 0 -er 100 -algo FedTGP -lam 0.1 -se 100 --save_folder_name results/test_all_batchsize=32_dataset=Cifar100_HtFE3 > /dev/null 2>&1 &
+nohup python -u main.py -t 3 -ab 1 -jr 1 -lbs 32 -ls 1 -nc 20 -nb 100 -data Cifar100 -m HtFE3 -fd 512 -did 5 -sr 0 -er 100 -algo LG-FedAvg --save_folder_name results/test_all_batchsize=32_dataset=Cifar100_HtFE3 > /dev/null 2>&1 &
+nohup python -u main.py -t 3 -ab 1 -jr 1 -lbs 32 -ls 1 -nc 20 -nb 100 -data Cifar100 -m HtFE3 -fd 512 -did 7 -sr 0 -er 100 -algo FedGen -nd 32 -glr 0.0003 -se 50 -hd 512 --save_folder_name results/test_all_batchsize=32_dataset=Cifar100_HtFE3 > /dev/null 2>&1 &
+nohup python -u main.py -t 3 -ab 1 -jr 1 -lbs 32 -ls 1 -nc 20 -nb 100 -data Cifar100 -m HtFE3 -fd 512 -did 0 -sr 0 -er 100 -algo FML -al 0.5 -bt 0.5 --save_folder_name results/test_all_batchsize=32_dataset=Cifar100_HtFE3 > /dev/null 2>&1 &
+nohup python -u main.py -t 3 -ab 1 -jr 1 -lbs 32 -ls 1 -nc 20 -nb 100 -data Cifar100 -m HtFE3 -fd 512 -did 6 -sr 0 -er 100 -algo FedKD -mlr 0.01 -Ts 0.95 -Te 0.98 --save_folder_name results/test_all_batchsize=32_dataset=Cifar100_HtFE3 > /dev/null 2>&1 &
+nohup python -u main.py -t 3 -ab 1 -jr 1 -lbs 32 -ls 1 -nc 20 -nb 100 -data Cifar100 -m HtFE3 -fd 512 -did 3 -sr 0 -er 100 -algo FedOrth -clam 10 -slam 1 -gam 10 -se 1 --save_folder_name results/test_all_batchsize=32_dataset=Cifar100_HtFE3 > /dev/null 2>&1 &
+
+
+# test all when dataset=Cifar100 HMG=HtFE5
+nohup python -u main.py -t 3 -ab 1 -jr 1 -lbs 32 -ls 1 -nc 20 -nb 100 -data Cifar100 -m HtFE5 -fd 512 -did 4 -sr 0 -er 100 -algo FedProto -lam 1 --save_folder_name results/test_all_batchsize=32_dataset=Cifar100_HtFE5 > /dev/null 2>&1 &
+nohup python -u main.py -t 3 -ab 1 -jr 1 -lbs 32 -ls 1 -nc 20 -nb 100 -data Cifar100 -m HtFE5 -fd 512 -did 1 -sr 0 -er 100 -algo FedGH -se 1 --save_folder_name results/test_all_batchsize=32_dataset=Cifar100_HtFE5 > /dev/null 2>&1 &
+nohup python -u main.py -t 3 -ab 1 -jr 1 -lbs 32 -ls 1 -nc 20 -nb 100 -data Cifar100 -m HtFE5 -fd 512 -did 2 -sr 0 -er 100 -algo FedTGP -lam 0.1 -se 100 --save_folder_name results/test_all_batchsize=32_dataset=Cifar100_HtFE5 > /dev/null 2>&1 &
+nohup python -u main.py -t 3 -ab 1 -jr 1 -lbs 32 -ls 1 -nc 20 -nb 100 -data Cifar100 -m HtFE5 -fd 512 -did 5 -sr 0 -er 100 -algo LG-FedAvg --save_folder_name results/test_all_batchsize=32_dataset=Cifar100_HtFE5 > /dev/null 2>&1 &
+nohup python -u main.py -t 3 -ab 1 -jr 1 -lbs 32 -ls 1 -nc 20 -nb 100 -data Cifar100 -m HtFE5 -fd 512 -did 7 -sr 0 -er 100 -algo FedGen -nd 32 -glr 0.0003 -se 50 -hd 512 --save_folder_name results/test_all_batchsize=32_dataset=Cifar100_HtFE5 > /dev/null 2>&1 &
+nohup python -u main.py -t 3 -ab 1 -jr 1 -lbs 32 -ls 1 -nc 20 -nb 100 -data Cifar100 -m HtFE5 -fd 512 -did 0 -sr 0 -er 100 -algo FML -al 0.5 -bt 0.5 --save_folder_name results/test_all_batchsize=32_dataset=Cifar100_HtFE5 > /dev/null 2>&1 &
+nohup python -u main.py -t 3 -ab 1 -jr 1 -lbs 32 -ls 1 -nc 20 -nb 100 -data Cifar100 -m HtFE5 -fd 512 -did 6 -sr 0 -er 100 -algo FedKD -mlr 0.01 -Ts 0.95 -Te 0.98 --save_folder_name results/test_all_batchsize=32_dataset=Cifar100_HtFE5 > /dev/null 2>&1 &
+nohup python -u main.py -t 3 -ab 1 -jr 1 -lbs 32 -ls 1 -nc 20 -nb 100 -data Cifar100 -m HtFE5 -fd 512 -did 3 -sr 0 -er 100 -algo FedOrth -clam 10 -slam 1 -gam 10 -se 1 --save_folder_name results/test_all_batchsize=32_dataset=Cifar100_HtFE5 > /dev/null 2>&1 &
+
+
+# test all when dataset=Cifar100 HMG=HtFE10
+nohup python -u main.py -t 3 -ab 1 -jr 1 -lbs 32 -ls 1 -nc 20 -nb 100 -data Cifar100 -m HtFE10 -fd 512 -did 4 -sr 0 -er 100 -algo FedProto -lam 1 --save_folder_name results/test_all_batchsize=32_dataset=Cifar100_HtFE10 > /dev/null 2>&1 &
+nohup python -u main.py -t 3 -ab 1 -jr 1 -lbs 32 -ls 1 -nc 20 -nb 100 -data Cifar100 -m HtFE10 -fd 512 -did 1 -sr 0 -er 100 -algo FedGH -se 1 --save_folder_name results/test_all_batchsize=32_dataset=Cifar100_HtFE10 > /dev/null 2>&1 &
+nohup python -u main.py -t 3 -ab 1 -jr 1 -lbs 32 -ls 1 -nc 20 -nb 100 -data Cifar100 -m HtFE10 -fd 512 -did 2 -sr 0 -er 100 -algo FedTGP -lam 0.1 -se 100 --save_folder_name results/test_all_batchsize=32_dataset=Cifar100_HtFE10 > /dev/null 2>&1 &
+nohup python -u main.py -t 3 -ab 1 -jr 1 -lbs 32 -ls 1 -nc 20 -nb 100 -data Cifar100 -m HtFE10 -fd 512 -did 5 -sr 0 -er 100 -algo LG-FedAvg --save_folder_name results/test_all_batchsize=32_dataset=Cifar100_HtFE10 > /dev/null 2>&1 &
+nohup python -u main.py -t 3 -ab 1 -jr 1 -lbs 32 -ls 1 -nc 20 -nb 100 -data Cifar100 -m HtFE10 -fd 512 -did 7 -sr 0 -er 100 -algo FedGen -nd 32 -glr 0.0003 -se 50 -hd 512 --save_folder_name results/test_all_batchsize=32_dataset=Cifar100_HtFE10 > /dev/null 2>&1 &
+nohup python -u main.py -t 3 -ab 1 -jr 1 -lbs 32 -ls 1 -nc 20 -nb 100 -data Cifar100 -m HtFE10 -fd 512 -did 0 -sr 0 -er 100 -algo FML -al 0.5 -bt 0.5 --save_folder_name results/test_all_batchsize=32_dataset=Cifar100_HtFE10 > /dev/null 2>&1 &
+nohup python -u main.py -t 3 -ab 1 -jr 1 -lbs 32 -ls 1 -nc 20 -nb 100 -data Cifar100 -m HtFE10 -fd 512 -did 6 -sr 0 -er 100 -algo FedKD -mlr 0.01 -Ts 0.95 -Te 0.98 --save_folder_name results/test_all_batchsize=32_dataset=Cifar100_HtFE10 > /dev/null 2>&1 &
+nohup python -u main.py -t 3 -ab 1 -jr 1 -lbs 32 -ls 1 -nc 20 -nb 100 -data Cifar100 -m HtFE10 -fd 512 -did 3 -sr 0 -er 100 -algo FedOrth -clam 10 -slam 1 -gam 10 -se 1 --save_folder_name results/test_all_batchsize=32_dataset=Cifar100_HtFE10 > /dev/null 2>&1 &
+
+
+
+
+
+
