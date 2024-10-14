@@ -95,7 +95,7 @@ nohup python -u main.py -t 3 -ab 1 -jr 1 -lbs 32 -ls 1 -nc 20 -nb 100 -data Cifa
 # nohup python -u main.py -t 3 -ab 1 -jr 1 -lbs 32 -ls 1 -nc 20 -nb 100 -data Cifar100 -m HtFE8 -fd 512 -did 3 -sr 0 -er 100 -algo FedOrth -clam 10 -slam 1 -gam 10 -se 1 --save_folder_name results/test_all_batchsize=32_dataset=Cifar100 > /dev/null 2>&1 &
 
 
-# test all when batchsize=32 dataset=EMNIST 7 classes per client (done)
+# test all when batchsize=32 dataset=EMNIST 7 classes per client (done/deleted)
 # nohup python -u main.py -t 3 -ab 1 -jr 1 -lbs 32 -ls 1 -nc 20 -nb 47 -data EMNIST -m HtFE8 -fd 512 -did 4 -sr 0 -er 100 -algo FedProto -lam 1 --save_folder_name results/test_all_batchsize=32_dataset=EMNIST > /dev/null 2>&1 &
 # nohup python -u main.py -t 3 -ab 1 -jr 1 -lbs 32 -ls 1 -nc 20 -nb 47 -data EMNIST -m HtFE8 -fd 512 -did 1 -sr 0 -er 100 -algo FedGH --save_folder_name results/test_all_batchsize=32_dataset=EMNIST > /dev/null 2>&1 &
 nohup python -u main.py -t 3 -ab 1 -jr 1 -lbs 32 -ls 1 -nc 20 -nb 47 -data EMNIST -m HtFE8 -fd 512 -did 0 -sr 0 -er 100 -algo FedTGP -lam 0.1 -se 100 --save_folder_name results/test_all_batchsize=32_dataset=EMNIST > /dev/null 2>&1 &
@@ -104,6 +104,17 @@ nohup python -u main.py -t 3 -ab 1 -jr 1 -lbs 32 -ls 1 -nc 20 -nb 47 -data EMNIS
 # nohup python -u main.py -t 3 -ab 1 -jr 1 -lbs 32 -ls 1 -nc 20 -nb 47 -data EMNIST -m HtFE8 -fd 512 -did 0 -sr 0 -er 100 -algo FML -al 0.5 -bt 0.5 --save_folder_name results/test_all_batchsize=32_dataset=EMNIST > /dev/null 2>&1 &
 # nohup python -u main.py -t 3 -ab 1 -jr 1 -lbs 32 -ls 1 -nc 20 -nb 47 -data EMNIST -m HtFE8 -fd 512 -did 6 -sr 0 -er 100 -algo FedKD -mlr 0.01 -Ts 0.95 -Te 0.98 --save_folder_name results/test_all_batchsize=32_dataset=EMNIST > /dev/null 2>&1 &
 # nohup python -u main.py -t 3 -ab 1 -jr 1 -lbs 32 -ls 1 -nc 20 -nb 47 -data EMNIST -m HtFE8 -fd 512 -did 3 -sr 0 -er 100 -algo FedOrth -clam 10 -slam 1 -gam 10 -se 1 --save_folder_name results/test_all_batchsize=32_dataset=EMNIST > /dev/null 2>&1 &
+
+
+# test all when batchsize=32 dataset=FashionMNIST 2 classes per client
+nohup python -u main.py -t 3 -ab 1 -jr 1 -lbs 32 -ls 1 -nc 20 -nb 10 -data FashionMNIST -m HtFE8 -fd 512 -did 4 -sr 0 -er 100 -algo FedProto -lam 1 --save_folder_name results/test_all_batchsize=32_dataset=FashionMNIST > /dev/null 2>&1 &
+nohup python -u main.py -t 3 -ab 1 -jr 1 -lbs 32 -ls 1 -nc 20 -nb 10 -data FashionMNIST -m HtFE8 -fd 512 -did 1 -sr 0 -er 100 -algo FedGH --save_folder_name results/test_all_batchsize=32_dataset=FashionMNIST > /dev/null 2>&1 &
+nohup python -u main.py -t 3 -ab 1 -jr 1 -lbs 32 -ls 1 -nc 20 -nb 10 -data FashionMNIST -m HtFE8 -fd 512 -did 7 -sr 0 -er 100 -algo FedTGP -lam 0.1 -se 100 --save_folder_name results/test_all_batchsize=32_dataset=FashionMNIST > /dev/null 2>&1 &
+nohup python -u main.py -t 3 -ab 1 -jr 1 -lbs 32 -ls 1 -nc 20 -nb 10 -data FashionMNIST -m HtFE8 -fd 512 -did 2 -sr 0 -er 100 -algo FedGen -nd 32 -glr 0.0003 -se 50 --save_folder_name results/test_all_batchsize=32_dataset=FashionMNIST > /dev/null 2>&1 &
+nohup python -u main.py -t 3 -ab 1 -jr 1 -lbs 32 -ls 1 -nc 20 -nb 10 -data FashionMNIST -m HtFE8 -fd 512 -did 0 -sr 0 -er 100 -algo FML -al 0.5 -bt 0.5 --save_folder_name results/test_all_batchsize=32_dataset=FashionMNIST > /dev/null 2>&1 &
+nohup python -u main.py -t 3 -ab 1 -jr 1 -lbs 32 -ls 1 -nc 20 -nb 10 -data FashionMNIST -m HtFE8 -fd 512 -did 6 -sr 0 -er 100 -algo FedKD -mlr 0.01 -Ts 0.95 -Te 0.98 --save_folder_name results/test_all_batchsize=32_dataset=FashionMNIST > /dev/null 2>&1 &
+nohup python -u main.py -t 3 -ab 1 -jr 1 -lbs 32 -ls 1 -nc 20 -nb 10 -data FashionMNIST -m HtFE8 -fd 512 -did 3 -sr 0 -er 100 -algo FedOrth -clam 10 -slam 1 -gam 10 -se 1 --save_folder_name results/test_all_batchsize=32_dataset=FashionMNIST > /dev/null 2>&1 &
+nohup python -u main.py -t 3 -ab 1 -jr 1 -lbs 32 -ls 1 -nc 20 -nb 10 -data FashionMNIST -m HtFE8 -fd 512 -did 5 -sr 0 -er 100 -algo LG-FedAvg --save_folder_name results/test_all_batchsize=32_dataset=FashionMNIST > /dev/null 2>&1 &
 
 
 # test all when batchsize=32 dataset=Flowers102 10 classes per client  (done)
@@ -117,7 +128,7 @@ nohup python -u main.py -t 3 -ab 1 -jr 1 -lbs 32 -ls 1 -nc 20 -nb 102 -data Flow
 # nohup python -u main.py -t 3 -ab 1 -jr 1 -lbs 32 -ls 1 -nc 20 -nb 102 -data Flowers102 -m HtFE8 -fd 512 -did 3 -sr 0 -er 100 -algo FedOrth -clam 10 -slam 1 -gam 10 -se 1 --save_folder_name results/test_all_batchsize=32_dataset=Flowers102 > /dev/null 2>&1 &
 
 
-# test all batchsize=32 dataset=Cifar10 0.2 distribution
+# test all batchsize=32 dataset=Cifar10 0.2 distribution (done)
 nohup python -u main.py -t 3 -ab 1 -jr 1 -lbs 32 -ls 1 -nc 20 -nb 10 -data Cifar10 -m HtFE8 -fd 512 -did 4 -sr 0 -er 100 -algo FedProto --save_folder_name results/test_all_batchsize=32_dataset=Cifar10_dir=0.2 > /dev/null 2>&1 &
 nohup python -u main.py -t 3 -ab 1 -jr 1 -lbs 32 -ls 1 -nc 20 -nb 10 -data Cifar10 -m HtFE8 -fd 512 -did 1 -sr 0 -er 100 -algo FedGH -se 1 --save_folder_name results/test_all_batchsize=32_dataset=Cifar10_dir=0.2 > /dev/null 2>&1 &
 nohup python -u main.py -t 3 -ab 1 -jr 1 -lbs 32 -ls 1 -nc 20 -nb 10 -data Cifar10 -m HtFE8 -fd 512 -did 2 -sr 0 -er 100 -algo FedTGP -lam 0.1 -se 100 --save_folder_name results/test_all_batchsize=32_dataset=Cifar10_dir=0.2 > /dev/null 2>&1 &
@@ -128,7 +139,7 @@ nohup python -u main.py -t 3 -ab 1 -jr 1 -lbs 32 -ls 1 -nc 20 -nb 10 -data Cifar
 nohup python -u main.py -t 3 -ab 1 -jr 1 -lbs 32 -ls 1 -nc 20 -nb 10 -data Cifar10 -m HtFE8 -fd 512 -did 7 -sr 0 -er 100 -algo FedOrth -clam 10 -slam 1 -gam 10 -se 1 --save_folder_name results/test_all_batchsize=32_dataset=Cifar10_dir=0.2 > /dev/null 2>&1 &
 
 
-# test all when batchsize=32 dataset=Cifar100 0.2 distribution
+# test all when batchsize=32 dataset=Cifar100 0.2 distribution (done)
 nohup python -u main.py -t 3 -ab 1 -jr 1 -lbs 32 -ls 1 -nc 20 -nb 100 -data Cifar100 -m HtFE8 -fd 512 -did 4 -sr 0 -er 100 -algo FedProto -lam 1 --save_folder_name results/test_all_batchsize=32_dataset=Cifar100_dir=0.2 > /dev/null 2>&1 &
 nohup python -u main.py -t 3 -ab 1 -jr 1 -lbs 32 -ls 1 -nc 20 -nb 100 -data Cifar100 -m HtFE8 -fd 512 -did 1 -sr 0 -er 100 -algo FedGH -se 1 --save_folder_name results/test_all_batchsize=32_dataset=Cifar100_dir=0.2 > /dev/null 2>&1 &
 nohup python -u main.py -t 3 -ab 1 -jr 1 -lbs 32 -ls 1 -nc 20 -nb 100 -data Cifar100 -m HtFE8 -fd 512 -did 2 -sr 0 -er 100 -algo FedTGP -lam 0.1 -se 100 --save_folder_name results/test_all_batchsize=32_dataset=Cifar100_dir=0.2 > /dev/null 2>&1 &
@@ -139,7 +150,7 @@ nohup python -u main.py -t 3 -ab 1 -jr 1 -lbs 32 -ls 1 -nc 20 -nb 100 -data Cifa
 nohup python -u main.py -t 3 -ab 1 -jr 1 -lbs 32 -ls 1 -nc 20 -nb 100 -data Cifar100 -m HtFE8 -fd 512 -did 3 -sr 0 -er 100 -algo FedOrth -clam 10 -slam 1 -gam 10 -se 1 --save_folder_name results/test_all_batchsize=32_dataset=Cifar100_dir=0.2 > /dev/null 2>&1 &
 
 
-# test all when batchsize=32 dataset=EMNIST 0.2 distribution
+# test all when batchsize=32 dataset=EMNIST 0.2 distribution (done/deleted)
 nohup python -u main.py -t 3 -ab 1 -jr 1 -lbs 32 -ls 1 -nc 20 -nb 47 -data EMNIST -m HtFE8 -fd 512 -did 4 -sr 0 -er 100 -algo FedProto -lam 1 --save_folder_name results/test_all_batchsize=32_dataset=EMNIST_dir=0.2 > /dev/null 2>&1 &
 nohup python -u main.py -t 3 -ab 1 -jr 1 -lbs 32 -ls 1 -nc 20 -nb 47 -data EMNIST -m HtFE8 -fd 512 -did 1 -sr 0 -er 100 -algo FedGH --save_folder_name results/test_all_batchsize=32_dataset=EMNIST_dir=0.2 > /dev/null 2>&1 &
 nohup python -u main.py -t 3 -ab 1 -jr 1 -lbs 32 -ls 1 -nc 20 -nb 47 -data EMNIST -m HtFE8 -fd 512 -did 7 -sr 0 -er 100 -algo FedTGP -lam 0.1 -se 100 --save_folder_name results/test_all_batchsize=32_dataset=EMNIST_dir=0.2 > /dev/null 2>&1 &
@@ -149,7 +160,7 @@ nohup python -u main.py -t 3 -ab 1 -jr 1 -lbs 32 -ls 1 -nc 20 -nb 47 -data EMNIS
 nohup python -u main.py -t 3 -ab 1 -jr 1 -lbs 32 -ls 1 -nc 20 -nb 47 -data EMNIST -m HtFE8 -fd 512 -did 6 -sr 0 -er 100 -algo FedKD -mlr 0.01 -Ts 0.95 -Te 0.98 --save_folder_name results/test_all_batchsize=32_dataset=EMNIST_dir=0.2 > /dev/null 2>&1 &
 nohup python -u main.py -t 3 -ab 1 -jr 1 -lbs 32 -ls 1 -nc 20 -nb 47 -data EMNIST -m HtFE8 -fd 512 -did 3 -sr 0 -er 100 -algo FedOrth -clam 10 -slam 1 -gam 10 -se 1 --save_folder_name results/test_all_batchsize=32_dataset=EMNIST_dir=0.2 > /dev/null 2>&1 &
 
-# test all when batchsize=32 dataset=FashionMNIST 0.2 distribution
+# test all when batchsize=32 dataset=FashionMNIST 0.2 distribution (done)
 nohup python -u main.py -t 3 -ab 1 -jr 1 -lbs 32 -ls 1 -nc 20 -nb 10 -data FashionMNIST -m HtFE8 -fd 512 -did 4 -sr 0 -er 100 -algo FedProto -lam 1 --save_folder_name results/test_all_batchsize=32_dataset=FashionMNIST_dir=0.2 > /dev/null 2>&1 &
 nohup python -u main.py -t 3 -ab 1 -jr 1 -lbs 32 -ls 1 -nc 20 -nb 10 -data FashionMNIST -m HtFE8 -fd 512 -did 1 -sr 0 -er 100 -algo FedGH --save_folder_name results/test_all_batchsize=32_dataset=FashionMNIST_dir=0.2 > /dev/null 2>&1 &
 nohup python -u main.py -t 3 -ab 1 -jr 1 -lbs 32 -ls 1 -nc 20 -nb 10 -data FashionMNIST -m HtFE8 -fd 512 -did 7 -sr 0 -er 100 -algo FedTGP -lam 0.1 -se 100 --save_folder_name results/test_all_batchsize=32_dataset=FashionMNIST_dir=0.2 > /dev/null 2>&1 &
@@ -160,7 +171,7 @@ nohup python -u main.py -t 3 -ab 1 -jr 1 -lbs 32 -ls 1 -nc 20 -nb 10 -data Fashi
 nohup python -u main.py -t 3 -ab 1 -jr 1 -lbs 32 -ls 1 -nc 20 -nb 10 -data FashionMNIST -m HtFE8 -fd 512 -did 3 -sr 0 -er 100 -algo FedOrth -clam 10 -slam 1 -gam 10 -se 1 --save_folder_name results/test_all_batchsize=32_dataset=FashionMNIST_dir=0.2 > /dev/null 2>&1 &
 
 
-# test all when batchsize=32 dataset=Flowers102_dir=0.2 0.2 distribution
+# test all when batchsize=32 dataset=Flowers102_dir=0.2 0.2 distribution (done)
 nohup python -u main.py -t 3 -ab 1 -jr 1 -lbs 32 -ls 1 -nc 20 -nb 102 -data Flowers102 -m HtFE8 -fd 512 -did 4 -sr 0 -er 100 -algo FedProto --save_folder_name results/test_all_batchsize=32_dataset=Flowers102_dir=0.2 > /dev/null 2>&1 &
 nohup python -u main.py -t 3 -ab 1 -jr 1 -lbs 32 -ls 1 -nc 20 -nb 102 -data Flowers102 -m HtFE8 -fd 512 -did 1 -sr 0 -er 100 -algo FedGH -se 1 --save_folder_name results/test_all_batchsize=32_dataset=Flowers102_dir=0.2 > /dev/null 2>&1 &
 nohup python -u main.py -t 3 -ab 1 -jr 1 -lbs 32 -ls 1 -nc 20 -nb 102 -data Flowers102 -m HtFE8 -fd 512 -did 2 -sr 0 -er 100 -algo FedTGP -lam 0.1 -se 100 --save_folder_name results/test_all_batchsize=32_dataset=Flowers102_dir=0.2 > /dev/null 2>&1 &
@@ -171,6 +182,7 @@ nohup python -u main.py -t 3 -ab 1 -jr 1 -lbs 32 -ls 1 -nc 20 -nb 102 -data Flow
 nohup python -u main.py -t 3 -ab 1 -jr 1 -lbs 32 -ls 1 -nc 20 -nb 102 -data Flowers102 -m HtFE8 -fd 512 -did 3 -sr 0 -er 100 -algo FedOrth -clam 10 -slam 1 -gam 10 -se 1 --save_folder_name results/test_all_batchsize=32_dataset=Flowers102_dir=0.2 > /dev/null 2>&1 &
 
 
+# 3. test heterogenous model groups
 # test all when dataset=Cifar100 HMG=HtFE3
 nohup python -u main.py -t 3 -ab 1 -jr 1 -lbs 32 -ls 1 -nc 20 -nb 100 -data Cifar100 -m HtFE3 -fd 512 -did 4 -sr 0 -er 100 -algo FedProto -lam 1 --save_folder_name results/test_all_batchsize=32_dataset=Cifar100_HtFE3 > /dev/null 2>&1 &
 nohup python -u main.py -t 3 -ab 1 -jr 1 -lbs 32 -ls 1 -nc 20 -nb 100 -data Cifar100 -m HtFE3 -fd 512 -did 1 -sr 0 -er 100 -algo FedGH -se 1 --save_folder_name results/test_all_batchsize=32_dataset=Cifar100_HtFE3 > /dev/null 2>&1 &
@@ -204,7 +216,41 @@ nohup python -u main.py -t 3 -ab 1 -jr 1 -lbs 32 -ls 1 -nc 20 -nb 100 -data Cifa
 nohup python -u main.py -t 3 -ab 1 -jr 1 -lbs 32 -ls 1 -nc 20 -nb 100 -data Cifar100 -m HtFE10 -fd 512 -did 3 -sr 0 -er 100 -algo FedOrth -clam 10 -slam 1 -gam 10 -se 1 --save_folder_name results/test_all_batchsize=32_dataset=Cifar100_HtFE10 > /dev/null 2>&1 &
 
 
+# 4. test convergence rate
 
+
+# 5. test robustness to N and C
+# please partition dataset for 40 clients first
+nohup python -u main.py -t 3 -ab 1 -jr 0.5 -lbs 32 -ls 1 -nc 40 -nb 100 -data Cifar100 -m HtFE8 -fd 512 -did 4 -sr 0 -er 100 -algo FedProto -lam 1 --save_folder_name results/test_all_batchsize=32_dataset=Cifar100_nc=40_C=0.5 > /dev/null 2>&1 &
+nohup python -u main.py -t 3 -ab 1 -jr 0.5 -lbs 32 -ls 1 -nc 40 -nb 100 -data Cifar100 -m HtFE8 -fd 512 -did 1 -sr 0 -er 100 -algo FedGH -se 1 --save_folder_name results/test_all_batchsize=32_dataset=Cifar100_nc=40_C=0.5 > /dev/null 2>&1 &
+nohup python -u main.py -t 3 -ab 1 -jr 0.5 -lbs 32 -ls 1 -nc 40 -nb 100 -data Cifar100 -m HtFE8 -fd 512 -did 2 -sr 0 -er 100 -algo FedTGP -lam 0.1 -se 100 --save_folder_name results/test_all_batchsize=32_dataset=Cifar100_nc=40_C=0.5 > /dev/null 2>&1 &
+nohup python -u main.py -t 3 -ab 1 -jr 0.5 -lbs 32 -ls 1 -nc 40 -nb 100 -data Cifar100 -m HtFE8 -fd 512 -did 5 -sr 0 -er 100 -algo LG-FedAvg --save_folder_name results/test_all_batchsize=32_dataset=Cifar100_nc=40_C=0.5 > /dev/null 2>&1 &
+nohup python -u main.py -t 3 -ab 1 -jr 0.5 -lbs 32 -ls 1 -nc 40 -nb 100 -data Cifar100 -m HtFE8 -fd 512 -did 7 -sr 0 -er 100 -algo FedGen -nd 32 -glr 0.0003 -se 50 -hd 512 --save_folder_name results/test_all_batchsize=32_dataset=Cifar100_nc=40_C=0.5 > /dev/null 2>&1 &
+nohup python -u main.py -t 3 -ab 1 -jr 0.5 -lbs 32 -ls 1 -nc 40 -nb 100 -data Cifar100 -m HtFE8 -fd 512 -did 0 -sr 0 -er 100 -algo FML -al 0.5 -bt 0.5 --save_folder_name results/test_all_batchsize=32_dataset=Cifar100_nc=40_C=0.5 > /dev/null 2>&1 &
+nohup python -u main.py -t 3 -ab 1 -jr 0.5 -lbs 32 -ls 1 -nc 40 -nb 100 -data Cifar100 -m HtFE8 -fd 512 -did 6 -sr 0 -er 100 -algo FedKD -mlr 0.01 -Ts 0.95 -Te 0.98 --save_folder_name results/test_all_batchsize=32_dataset=Cifar100_nc=40_C=0.5 > /dev/null 2>&1 &
+nohup python -u main.py -t 3 -ab 1 -jr 0.5 -lbs 32 -ls 1 -nc 40 -nb 100 -data Cifar100 -m HtFE8 -fd 512 -did 3 -sr 0 -er 100 -algo FedOrth -clam 10 -slam 1 -gam 10 -se 1 --save_folder_name results/test_all_batchsize=32_dataset=Cifar100_nc=40_C=0.5 > /dev/null 2>&1 &
+
+
+# please partition dataset for 80 clients first
+nohup python -u main.py -t 3 -ab 1 -jr 0.25 -lbs 32 -ls 1 -nc 80 -nb 100 -data Cifar100 -m HtFE8 -fd 512 -did 4 -sr 0 -er 100 -algo FedProto -lam 1 --save_folder_name results/test_all_batchsize=32_dataset=Cifar100_nc=80_C=0.25 > /dev/null 2>&1 &
+nohup python -u main.py -t 3 -ab 1 -jr 0.25 -lbs 32 -ls 1 -nc 80 -nb 100 -data Cifar100 -m HtFE8 -fd 512 -did 1 -sr 0 -er 100 -algo FedGH -se 1 --save_folder_name results/test_all_batchsize=32_dataset=Cifar100_nc=80_C=0.25 > /dev/null 2>&1 &
+nohup python -u main.py -t 3 -ab 1 -jr 0.25 -lbs 32 -ls 1 -nc 80 -nb 100 -data Cifar100 -m HtFE8 -fd 512 -did 2 -sr 0 -er 100 -algo FedTGP -lam 0.1 -se 100 --save_folder_name results/test_all_batchsize=32_dataset=Cifar100_nc=80_C=0.25 > /dev/null 2>&1 &
+nohup python -u main.py -t 3 -ab 1 -jr 0.25 -lbs 32 -ls 1 -nc 80 -nb 100 -data Cifar100 -m HtFE8 -fd 512 -did 5 -sr 0 -er 100 -algo LG-FedAvg --save_folder_name results/test_all_batchsize=32_dataset=Cifar100_nc=80_C=0.25 > /dev/null 2>&1 &
+nohup python -u main.py -t 3 -ab 1 -jr 0.25 -lbs 32 -ls 1 -nc 80 -nb 100 -data Cifar100 -m HtFE8 -fd 512 -did 7 -sr 0 -er 100 -algo FedGen -nd 32 -glr 0.0003 -se 50 -hd 512 --save_folder_name results/test_all_batchsize=32_dataset=Cifar100_nc=80_C=0.25 > /dev/null 2>&1 &
+nohup python -u main.py -t 3 -ab 1 -jr 0.25 -lbs 32 -ls 1 -nc 80 -nb 100 -data Cifar100 -m HtFE8 -fd 512 -did 0 -sr 0 -er 100 -algo FML -al 0.5 -bt 0.5 --save_folder_name results/test_all_batchsize=32_dataset=Cifar100_nc=80_C=0.25 > /dev/null 2>&1 &
+nohup python -u main.py -t 3 -ab 1 -jr 0.25 -lbs 32 -ls 1 -nc 80 -nb 100 -data Cifar100 -m HtFE8 -fd 512 -did 6 -sr 0 -er 100 -algo FedKD -mlr 0.01 -Ts 0.95 -Te 0.98 --save_folder_name results/test_all_batchsize=32_dataset=Cifar100_nc=80_C=0.25 > /dev/null 2>&1 &
+nohup python -u main.py -t 3 -ab 1 -jr 0.25 -lbs 32 -ls 1 -nc 80 -nb 100 -data Cifar100 -m HtFE8 -fd 512 -did 3 -sr 0 -er 100 -algo FedOrth -clam 10 -slam 1 -gam 10 -se 1 --save_folder_name results/test_all_batchsize=32_dataset=Cifar100_nc=80_C=0.25 > /dev/null 2>&1 &
+
+
+# please partition dataset for 100 clients first
+nohup python -u main.py -t 3 -ab 1 -jr 0.2 -lbs 32 -ls 1 -nc 100 -nb 100 -data Cifar100 -m HtFE8 -fd 512 -did 4 -sr 0 -er 100 -algo FedProto -lam 1 --save_folder_name results/test_all_batchsize=32_dataset=Cifar100_nc=100_C=0.2 > /dev/null 2>&1 &
+nohup python -u main.py -t 3 -ab 1 -jr 0.2 -lbs 32 -ls 1 -nc 100 -nb 100 -data Cifar100 -m HtFE8 -fd 512 -did 1 -sr 0 -er 100 -algo FedGH -se 1 --save_folder_name results/test_all_batchsize=32_dataset=Cifar100_nc=100_C=0.2 > /dev/null 2>&1 &
+nohup python -u main.py -t 3 -ab 1 -jr 0.2 -lbs 32 -ls 1 -nc 100 -nb 100 -data Cifar100 -m HtFE8 -fd 512 -did 2 -sr 0 -er 100 -algo FedTGP -lam 0.1 -se 100 --save_folder_name results/test_all_batchsize=32_dataset=Cifar100_nc=100_C=0.2 > /dev/null 2>&1 &
+nohup python -u main.py -t 3 -ab 1 -jr 0.2 -lbs 32 -ls 1 -nc 100 -nb 100 -data Cifar100 -m HtFE8 -fd 512 -did 5 -sr 0 -er 100 -algo LG-FedAvg --save_folder_name results/test_all_batchsize=32_dataset=Cifar100_nc=100_C=0.2 > /dev/null 2>&1 &
+nohup python -u main.py -t 3 -ab 1 -jr 0.2 -lbs 32 -ls 1 -nc 100 -nb 100 -data Cifar100 -m HtFE8 -fd 512 -did 7 -sr 0 -er 100 -algo FedGen -nd 32 -glr 0.0003 -se 50 -hd 512 --save_folder_name results/test_all_batchsize=32_dataset=Cifar100_nc=100_C=0.2 > /dev/null 2>&1 &
+nohup python -u main.py -t 3 -ab 1 -jr 0.2 -lbs 32 -ls 1 -nc 100 -nb 100 -data Cifar100 -m HtFE8 -fd 512 -did 0 -sr 0 -er 100 -algo FML -al 0.5 -bt 0.5 --save_folder_name results/test_all_batchsize=32_dataset=Cifar100_nc=100_C=0.2 > /dev/null 2>&1 &
+nohup python -u main.py -t 3 -ab 1 -jr 0.2 -lbs 32 -ls 1 -nc 100 -nb 100 -data Cifar100 -m HtFE8 -fd 512 -did 6 -sr 0 -er 100 -algo FedKD -mlr 0.01 -Ts 0.95 -Te 0.98 --save_folder_name results/test_all_batchsize=32_dataset=Cifar100_nc=100_C=0.2 > /dev/null 2>&1 &
+nohup python -u main.py -t 3 -ab 1 -jr 0.2 -lbs 32 -ls 1 -nc 100 -nb 100 -data Cifar100 -m HtFE8 -fd 512 -did 3 -sr 0 -er 100 -algo FedOrth -clam 10 -slam 1 -gam 10 -se 1 --save_folder_name results/test_all_batchsize=32_dataset=Cifar100_nc=100_C=0.2 > /dev/null 2>&1 &
 
 
 
