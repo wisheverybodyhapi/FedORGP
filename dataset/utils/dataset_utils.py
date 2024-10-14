@@ -26,7 +26,7 @@ train_ratio = 0.75 # merge original training set and test set, then split it man
 alpha = 0.2 # for Dirichlet distribution. 100 for exdir
 
 def check(config_path, train_path, test_path, num_clients, niid=False, 
-        balance=True, partition=None):
+        balance=True, partition=None, class_per_client=None):
     # check existing dataset
     if os.path.exists(config_path):
         with open(config_path, 'r') as f:
@@ -36,6 +36,7 @@ def check(config_path, train_path, test_path, num_clients, niid=False,
             config['balance'] == balance and \
             config['partition'] == partition and \
             config['alpha'] == alpha and \
+            config['class_per_client'] == class_per_client and \
             config['batch_size'] == batch_size:
             print("\nDataset already generated.\n")
             return True
@@ -245,17 +246,31 @@ def split_data(X, y):
     return train_data, test_data
 
 def save_file(config_path, train_path, test_path, train_data, test_data, num_clients, 
-                num_classes, statistic, niid=False, balance=True, partition=None):
-    config = {
-        'num_clients': num_clients, 
-        'num_classes': num_classes, 
-        'non_iid': niid, 
-        'balance': balance, 
-        'partition': partition, 
-        'Size of samples for labels in clients': statistic, 
-        'alpha': alpha, 
-        'batch_size': batch_size, 
-    }
+                num_classes, statistic, niid=False, balance=True, partition=None, class_per_client=None):
+    if partition == 'dir':
+        config = {
+            'num_clients': num_clients, 
+            'num_classes': num_classes, 
+            'batch_size': batch_size, 
+            'non_iid': niid, 
+            'balance': balance, 
+            'partition': partition, 
+            'alpha': alpha, 
+            'Size of samples for labels in clients': statistic, 
+            'class_per_client': class_per_client, 
+        }
+    elif partition == 'pat':
+        config = {
+            'num_clients': num_clients, 
+            'num_classes': num_classes, 
+            'batch_size': batch_size, 
+            'non_iid': niid, 
+            'balance': balance, 
+            'partition': partition, 
+            'class_per_client': class_per_client, 
+            'Size of samples for labels in clients': statistic, 
+            'alpha': alpha,
+        }
 
     # gc.collect()
     print("Saving to disk.\n")

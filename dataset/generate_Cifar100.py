@@ -42,7 +42,7 @@ def generate_dataset(dir_path, num_clients, niid, balance, partition):
     train_path = dir_path + "train/"
     test_path = dir_path + "test/"
 
-    if check(config_path, train_path, test_path, num_clients, niid, balance, partition):
+    if check(config_path, train_path, test_path, num_clients, niid, balance, partition, class_per_client):
         return
         
     # Get Cifar100 data
@@ -85,7 +85,7 @@ def generate_dataset(dir_path, num_clients, niid, balance, partition):
                                     niid, balance, partition, class_per_client=class_per_client)
     train_data, test_data = split_data(X, y)
     save_file(config_path, train_path, test_path, train_data, test_data, num_clients, num_classes, 
-        statistic, niid, balance, partition)
+        statistic, niid, balance, partition, class_per_client)
 
 
 if __name__ == "__main__":
