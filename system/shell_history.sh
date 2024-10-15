@@ -89,7 +89,7 @@ nohup python -u main.py -t 3 -ab 1 -jr 1 -lbs 32 -ls 1 -nc 20 -nb 10 -data Cifar
 # nohup python -u main.py -t 3 -ab 1 -jr 1 -lbs 32 -ls 1 -nc 20 -nb 100 -data Cifar100 -m HtFE8 -fd 512 -did 1 -sr 0 -er 100 -algo FedGH -se 1 --save_folder_name results/test_all_batchsize=32_dataset=Cifar100 > /dev/null 2>&1 &
 # nohup python -u main.py -t 3 -ab 1 -jr 1 -lbs 32 -ls 1 -nc 20 -nb 100 -data Cifar100 -m HtFE8 -fd 512 -did 2 -sr 0 -er 100 -algo FedTGP -lam 0.1 -se 100 --save_folder_name results/test_all_batchsize=32_dataset=Cifar100 > /dev/null 2>&1 &
 # nohup python -u main.py -t 3 -ab 1 -jr 1 -lbs 32 -ls 1 -nc 20 -nb 100 -data Cifar100 -m HtFE8 -fd 512 -did 5 -sr 0 -er 100 -algo LG-FedAvg --save_folder_name results/test_all_batchsize=32_dataset=Cifar100 > /dev/null 2>&1 &
-nohup python -u main.py -t 3 -ab 1 -jr 1 -lbs 32 -ls 1 -nc 20 -nb 100 -data Cifar100 -m HtFE8 -fd 512 -did 7 -sr 0 -er 100 -algo FedGen -nd 32 -glr 0.0003 -se 50 -hd 512 --save_folder_name results/test_all_batchsize=32_dataset=Cifar100 > /dev/null 2>&1 &
+# nohup python -u main.py -t 3 -ab 1 -jr 1 -lbs 32 -ls 1 -nc 20 -nb 100 -data Cifar100 -m HtFE8 -fd 512 -did 7 -sr 0 -er 100 -algo FedGen -nd 32 -glr 0.0003 -se 50 -hd 512 --save_folder_name results/test_all_batchsize=32_dataset=Cifar100 > /dev/null 2>&1 &
 # nohup python -u main.py -t 3 -ab 1 -jr 1 -lbs 32 -ls 1 -nc 20 -nb 100 -data Cifar100 -m HtFE8 -fd 512 -did 0 -sr 0 -er 100 -algo FML -al 0.5 -bt 0.5 --save_folder_name results/test_all_batchsize=32_dataset=Cifar100 > /dev/null 2>&1 &
 # nohup python -u main.py -t 3 -ab 1 -jr 1 -lbs 32 -ls 1 -nc 20 -nb 100 -data Cifar100 -m HtFE8 -fd 512 -did 6 -sr 0 -er 100 -algo FedKD -mlr 0.01 -Ts 0.95 -Te 0.98 --save_folder_name results/test_all_batchsize=32_dataset=Cifar100 > /dev/null 2>&1 &
 # nohup python -u main.py -t 3 -ab 1 -jr 1 -lbs 32 -ls 1 -nc 20 -nb 100 -data Cifar100 -m HtFE8 -fd 512 -did 3 -sr 0 -er 100 -algo FedOrth -clam 10 -slam 1 -gam 10 -se 1 --save_folder_name results/test_all_batchsize=32_dataset=Cifar100 > /dev/null 2>&1 &
@@ -122,7 +122,7 @@ nohup python -u main.py -t 3 -ab 1 -jr 1 -lbs 32 -ls 1 -nc 20 -nb 10 -data Fashi
 # nohup python -u main.py -t 3 -ab 1 -jr 1 -lbs 32 -ls 1 -nc 20 -nb 102 -data Flowers102 -m HtFE8 -fd 512 -did 1 -sr 0 -er 100 -algo FedGH -se 1 --save_folder_name results/test_all_batchsize=32_dataset=Flowers102 > /dev/null 2>&1 &
 # nohup python -u main.py -t 3 -ab 1 -jr 1 -lbs 32 -ls 1 -nc 20 -nb 102 -data Flowers102 -m HtFE8 -fd 512 -did 2 -sr 0 -er 100 -algo FedTGP -lam 0.1 -se 100 --save_folder_name results/test_all_batchsize=32_dataset=Flowers102 > /dev/null 2>&1 &
 # nohup python -u main.py -t 3 -ab 1 -jr 1 -lbs 32 -ls 1 -nc 20 -nb 102 -data Flowers102 -m HtFE8 -fd 512 -did 5 -sr 0 -er 100 -algo LG-FedAvg --save_folder_name results/test_all_batchsize=32_dataset=Flowers102 > /dev/null 2>&1 &
-nohup python -u main.py -t 3 -ab 1 -jr 1 -lbs 32 -ls 1 -nc 20 -nb 102 -data Flowers102 -m HtFE8 -fd 512 -did 7 -sr 0 -er 100 -algo FedGen -nd 32 -glr 0.0003 -se 50 -hd 512 --save_folder_name results/test_all_batchsize=32_dataset=Flowers102 > /dev/null 2>&1 &
+# nohup python -u main.py -t 3 -ab 1 -jr 1 -lbs 32 -ls 1 -nc 20 -nb 102 -data Flowers102 -m HtFE8 -fd 512 -did 7 -sr 0 -er 100 -algo FedGen -nd 32 -glr 0.0003 -se 50 -hd 512 --save_folder_name results/test_all_batchsize=32_dataset=Flowers102 > /dev/null 2>&1 &
 # nohup python -u main.py -t 3 -ab 1 -jr 1 -lbs 32 -ls 1 -nc 20 -nb 102 -data Flowers102 -m HtFE8 -fd 512 -did 0 -sr 0 -er 100 -algo FML -al 0.5 -bt 0.5 --save_folder_name results/test_all_batchsize=32_dataset=Flowers102 > /dev/null 2>&1 &
 # nohup python -u main.py -t 3 -ab 1 -jr 1 -lbs 32 -ls 1 -nc 20 -nb 102 -data Flowers102 -m HtFE8 -fd 512 -did 6 -sr 0 -er 100 -algo FedKD -mlr 0.01 -Ts 0.95 -Te 0.98 --save_folder_name results/test_all_batchsize=32_dataset=Flowers102 > /dev/null 2>&1 &
 # nohup python -u main.py -t 3 -ab 1 -jr 1 -lbs 32 -ls 1 -nc 20 -nb 102 -data Flowers102 -m HtFE8 -fd 512 -did 3 -sr 0 -er 100 -algo FedOrth -clam 10 -slam 1 -gam 10 -se 1 --save_folder_name results/test_all_batchsize=32_dataset=Flowers102 > /dev/null 2>&1 &
@@ -251,6 +251,39 @@ nohup python -u main.py -t 3 -ab 1 -jr 0.2 -lbs 32 -ls 1 -nc 100 -nb 100 -data C
 nohup python -u main.py -t 3 -ab 1 -jr 0.2 -lbs 32 -ls 1 -nc 100 -nb 100 -data Cifar100 -m HtFE8 -fd 512 -did 0 -sr 0 -er 100 -algo FML -al 0.5 -bt 0.5 --save_folder_name results/test_all_batchsize=32_dataset=Cifar100_nc=100_C=0.2 > /dev/null 2>&1 &
 nohup python -u main.py -t 3 -ab 1 -jr 0.2 -lbs 32 -ls 1 -nc 100 -nb 100 -data Cifar100 -m HtFE8 -fd 512 -did 6 -sr 0 -er 100 -algo FedKD -mlr 0.01 -Ts 0.95 -Te 0.98 --save_folder_name results/test_all_batchsize=32_dataset=Cifar100_nc=100_C=0.2 > /dev/null 2>&1 &
 nohup python -u main.py -t 3 -ab 1 -jr 0.2 -lbs 32 -ls 1 -nc 100 -nb 100 -data Cifar100 -m HtFE8 -fd 512 -did 3 -sr 0 -er 100 -algo FedOrth -clam 10 -slam 1 -gam 10 -se 1 --save_folder_name results/test_all_batchsize=32_dataset=Cifar100_nc=100_C=0.2 > /dev/null 2>&1 &
+
+6. test different K feature dim
+# test all when K = 128
+nohup python -u main.py -t 1 -ab 1 -jr 1 -lbs 32 -ls 1 -nc 20 -nb 100 -data Cifar100 -m HtFE8 -fd 128 -did 4 -sr 0 -er 100 -algo FedProto -lam 1 --save_folder_name results/test_all_batchsize=32_dataset=Cifar100_K=128 > /dev/null 2>&1 &
+nohup python -u main.py -t 1 -ab 1 -jr 1 -lbs 32 -ls 1 -nc 20 -nb 100 -data Cifar100 -m HtFE8 -fd 128 -did 1 -sr 0 -er 100 -algo FedGH -se 1 --save_folder_name results/test_all_batchsize=32_dataset=Cifar100_K=128 > /dev/null 2>&1 &
+nohup python -u main.py -t 1 -ab 1 -jr 1 -lbs 32 -ls 1 -nc 20 -nb 100 -data Cifar100 -m HtFE8 -fd 128 -did 2 -sr 0 -er 100 -algo FedTGP -lam 0.1 -se 100 --save_folder_name results/test_all_batchsize=32_dataset=Cifar100_K=128 > /dev/null 2>&1 &
+nohup python -u main.py -t 1 -ab 1 -jr 1 -lbs 32 -ls 1 -nc 20 -nb 100 -data Cifar100 -m HtFE8 -fd 128 -did 5 -sr 0 -er 100 -algo LG-FedAvg --save_folder_name results/test_all_batchsize=32_dataset=Cifar100_K=128 > /dev/null 2>&1 &
+nohup python -u main.py -t 1 -ab 1 -jr 1 -lbs 32 -ls 1 -nc 20 -nb 100 -data Cifar100 -m HtFE8 -fd 128 -did 7 -sr 0 -er 100 -algo FedGen -nd 32 -glr 0.0003 -se 50 -hd 512 --save_folder_name results/test_all_batchsize=32_dataset=Cifar100_K=128 > /dev/null 2>&1 &
+nohup python -u main.py -t 1 -ab 1 -jr 1 -lbs 32 -ls 1 -nc 20 -nb 100 -data Cifar100 -m HtFE8 -fd 128 -did 0 -sr 0 -er 100 -algo FML -al 0.5 -bt 0.5 --save_folder_name results/test_all_batchsize=32_dataset=Cifar100_K=128 > /dev/null 2>&1 &
+nohup python -u main.py -t 1 -ab 1 -jr 1 -lbs 32 -ls 1 -nc 20 -nb 100 -data Cifar100 -m HtFE8 -fd 128 -did 6 -sr 0 -er 100 -algo FedKD -mlr 0.01 -Ts 0.95 -Te 0.98 --save_folder_name results/test_all_batchsize=32_dataset=Cifar100_K=128 > /dev/null 2>&1 &
+nohup python -u main.py -t 1 -ab 1 -jr 1 -lbs 32 -ls 1 -nc 20 -nb 100 -data Cifar100 -m HtFE8 -fd 128 -did 3 -sr 0 -er 100 -algo FedOrth -clam 10 -slam 1 -gam 10 -se 1 --save_folder_name results/test_all_batchsize=32_dataset=Cifar100_K=128 > /dev/null 2>&1 &
+
+
+# test all when K = 256
+nohup python -u main.py -t 1 -ab 1 -jr 1 -lbs 32 -ls 1 -nc 20 -nb 100 -data Cifar100 -m HtFE8 -fd 256 -did 4 -sr 0 -er 100 -algo FedProto -lam 1 --save_folder_name results/test_all_batchsize=32_dataset=Cifar100_K=256 > /dev/null 2>&1 &
+nohup python -u main.py -t 1 -ab 1 -jr 1 -lbs 32 -ls 1 -nc 20 -nb 100 -data Cifar100 -m HtFE8 -fd 256 -did 1 -sr 0 -er 100 -algo FedGH -se 1 --save_folder_name results/test_all_batchsize=32_dataset=Cifar100_K=256 > /dev/null 2>&1 &
+nohup python -u main.py -t 1 -ab 1 -jr 1 -lbs 32 -ls 1 -nc 20 -nb 100 -data Cifar100 -m HtFE8 -fd 256 -did 2 -sr 0 -er 100 -algo FedTGP -lam 0.1 -se 100 --save_folder_name results/test_all_batchsize=32_dataset=Cifar100_K=256 > /dev/null 2>&1 &
+nohup python -u main.py -t 1 -ab 1 -jr 1 -lbs 32 -ls 1 -nc 20 -nb 100 -data Cifar100 -m HtFE8 -fd 256 -did 5 -sr 0 -er 100 -algo LG-FedAvg --save_folder_name results/test_all_batchsize=32_dataset=Cifar100_K=256 > /dev/null 2>&1 &
+nohup python -u main.py -t 1 -ab 1 -jr 1 -lbs 32 -ls 1 -nc 20 -nb 100 -data Cifar100 -m HtFE8 -fd 256 -did 7 -sr 0 -er 100 -algo FedGen -nd 32 -glr 0.0003 -se 50 -hd 512 --save_folder_name results/test_all_batchsize=32_dataset=Cifar100_K=256 > /dev/null 2>&1 &
+nohup python -u main.py -t 1 -ab 1 -jr 1 -lbs 32 -ls 1 -nc 20 -nb 100 -data Cifar100 -m HtFE8 -fd 256 -did 0 -sr 0 -er 100 -algo FML -al 0.5 -bt 0.5 --save_folder_name results/test_all_batchsize=32_dataset=Cifar100_K=256 > /dev/null 2>&1 &
+nohup python -u main.py -t 1 -ab 1 -jr 1 -lbs 32 -ls 1 -nc 20 -nb 100 -data Cifar100 -m HtFE8 -fd 256 -did 6 -sr 0 -er 100 -algo FedKD -mlr 0.01 -Ts 0.95 -Te 0.98 --save_folder_name results/test_all_batchsize=32_dataset=Cifar100_K=256 > /dev/null 2>&1 &
+nohup python -u main.py -t 1 -ab 1 -jr 1 -lbs 32 -ls 1 -nc 20 -nb 100 -data Cifar100 -m HtFE8 -fd 256 -did 3 -sr 0 -er 100 -algo FedOrth -clam 10 -slam 1 -gam 10 -se 1 --save_folder_name results/test_all_batchsize=32_dataset=Cifar100_K=256 > /dev/null 2>&1 &
+
+
+# test all when K = 1024
+nohup python -u main.py -t 1 -ab 1 -jr 1 -lbs 32 -ls 1 -nc 20 -nb 100 -data Cifar100 -m HtFE8 -fd 1024 -did 4 -sr 0 -er 100 -algo FedProto -lam 1 --save_folder_name results/test_all_batchsize=32_dataset=Cifar100_K=1024 > /dev/null 2>&1 &
+nohup python -u main.py -t 1 -ab 1 -jr 1 -lbs 32 -ls 1 -nc 20 -nb 100 -data Cifar100 -m HtFE8 -fd 1024 -did 1 -sr 0 -er 100 -algo FedGH -se 1 --save_folder_name results/test_all_batchsize=32_dataset=Cifar100_K=1024 > /dev/null 2>&1 &
+nohup python -u main.py -t 1 -ab 1 -jr 1 -lbs 32 -ls 1 -nc 20 -nb 100 -data Cifar100 -m HtFE8 -fd 1024 -did 2 -sr 0 -er 100 -algo FedTGP -lam 0.1 -se 100 --save_folder_name results/test_all_batchsize=32_dataset=Cifar100_K=1024 > /dev/null 2>&1 &
+nohup python -u main.py -t 1 -ab 1 -jr 1 -lbs 32 -ls 1 -nc 20 -nb 100 -data Cifar100 -m HtFE8 -fd 1024 -did 5 -sr 0 -er 100 -algo LG-FedAvg --save_folder_name results/test_all_batchsize=32_dataset=Cifar100_K=1024 > /dev/null 2>&1 &
+nohup python -u main.py -t 1 -ab 1 -jr 1 -lbs 32 -ls 1 -nc 20 -nb 100 -data Cifar100 -m HtFE8 -fd 1024 -did 7 -sr 0 -er 100 -algo FedGen -nd 32 -glr 0.0003 -se 50 -hd 512 --save_folder_name results/test_all_batchsize=32_dataset=Cifar100_K=1024 > /dev/null 2>&1 &
+nohup python -u main.py -t 1 -ab 1 -jr 1 -lbs 32 -ls 1 -nc 20 -nb 100 -data Cifar100 -m HtFE8 -fd 1024 -did 0 -sr 0 -er 100 -algo FML -al 0.5 -bt 0.5 --save_folder_name results/test_all_batchsize=32_dataset=Cifar100_K=1024 > /dev/null 2>&1 &
+nohup python -u main.py -t 1 -ab 1 -jr 1 -lbs 32 -ls 1 -nc 20 -nb 100 -data Cifar100 -m HtFE8 -fd 1024 -did 6 -sr 0 -er 100 -algo FedKD -mlr 0.01 -Ts 0.95 -Te 0.98 --save_folder_name results/test_all_batchsize=32_dataset=Cifar100_K=1024 > /dev/null 2>&1 &
+nohup python -u main.py -t 1 -ab 1 -jr 1 -lbs 32 -ls 1 -nc 20 -nb 100 -data Cifar100 -m HtFE8 -fd 1024 -did 3 -sr 0 -er 100 -algo FedOrth -clam 10 -slam 1 -gam 10 -se 1 --save_folder_name results/test_all_batchsize=32_dataset=Cifar100_K=1024 > /dev/null 2>&1 &
 
 
 
