@@ -38,6 +38,7 @@ class Client(object):
         # modification 2
         if self.save_folder_name == 'temp' or check_for_model(self.model_folder_name) == False:
             self.model = BaseHeadSplit(args, self.id).to(self.device)
+            self.initialize_weights(self.model)
         else:
             try:
                 self.model = load_item(self.role, 'model', self.model_folder_name)
@@ -53,6 +54,44 @@ class Client(object):
 
         self.loss = nn.CrossEntropyLoss()
 
+    def check_gradient_explosion(self, loss, threshold=1e6):
+        # 检查损失是否为NaN
+        if torch.isnan(loss):
+            self.logger.write("Loss is NaN. Stopping training.")
+            return True
+        
+        # 计算所有参数的梯度全局范数
+        total_norm = 0.0
+        for param in self.model.parameters():
+            if param.grad is not None:
+                param_norm = param.grad.data.norm(2)
+                total_norm += param_norm.item() ** 2
+        total_norm = total_norm ** 0.5
+        
+        # 检查梯度范数是否超过阈值
+        if total_norm > threshold:
+            self.logger.write(f"client {self.id} Gradient norm {total_norm} exceeds threshold {threshold}. Stopping training.")
+            return True
+        return False
+
+    def has_nan(self, loss):
+        if torch.isnan(loss):
+            return True
+        for param in self.model.parameters():
+            if param.grad is not None and torch.isnan(param.grad).any():
+                return True
+        return False
+
+    def initialize_weights(self, model):
+        for m in model.modules():
+            if isinstance(m, nn.Conv2d):
+                nn.init.kaiming_normal_(m.weight, mode='fan_out', nonlinearity='relu')
+                if m.bias is not None:
+                    nn.init.constant_(m.bias, 0)
+            elif isinstance(m, nn.Linear):
+                nn.init.kaiming_normal_(m.weight, mode='fan_out', nonlinearity='relu')
+                if m.bias is not None:
+                    nn.init.constant_(m.bias, 0)
 
     def load_train_data(self, batch_size=None):
         if batch_size == None:
