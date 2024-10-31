@@ -8,33 +8,6 @@ from flcore.clients.clientbase import Client, load_item, save_item
 from collections import defaultdict
 from tqdm import tqdm
 
-class OrthogonalProjectionLoss(nn.Module):
-    def __init__(self, gamma=0.5):
-        super(OrthogonalProjectionLoss, self).__init__()
-        self.gamma = gamma
-
-    def forward(self, features, labels=None):
-        device = (torch.device('cuda') if features.is_cuda else torch.device('cpu'))
-
-        #  features are normalized
-        features = F.normalize(features, p=2, dim=1)
-
-        labels = labels[:, None]  # extend dim
-
-        mask = torch.eq(labels, labels.t()).bool().to(device)
-        eye = torch.eye(mask.shape[0], mask.shape[1]).bool().to(device)
-
-        mask_pos = mask.masked_fill(eye, 0).float()
-        mask_neg = (~mask).float()
-        dot_prod = torch.matmul(features, features.t())
-
-        pos_pairs_mean = (mask_pos * dot_prod).sum() / (mask_pos.sum() + 1e-6)
-        neg_pairs_mean = (mask_neg * dot_prod).sum() / (mask_neg.sum() + 1e-6)  # TODO: removed abs
-
-        loss = (1.0 - pos_pairs_mean) + self.gamma * neg_pairs_mean
-
-        return loss
-    
 class clientOrtho(Client):
     def __init__(self, args, id, train_samples, test_samples, **kwargs):
         super().__init__(args, id, train_samples, test_samples, **kwargs)
@@ -45,7 +18,6 @@ class clientOrtho(Client):
 
         self.global_protos = None
         self.protos = None
-
 
     def train(self):
         trainloader = self.load_train_data()
@@ -75,7 +47,6 @@ class clientOrtho(Client):
                 output = self.model.head(rep)
                 loss = self.loss(output, y)
                 if self.global_protos != None:
-                    # loss = loss + self.lamda * intra_orth_loss(rep, y, self.global_protos) + self.gamma * inter_orth_loss(rep, y, self.global_protos)
                     loss += self.c_lamda * intra_orth_loss(rep, y, self.global_protos)
 
                 optimizer.zero_grad()
@@ -215,37 +186,3 @@ def intra_orth_loss(rep, labels, protos):
     loss_intra = loss_intra / similarity_intra.shape[0]  # 计算平均损失
 
     return loss_intra
-
-def inter_orth_loss(rep, labels, protos):
-    # Calculate the orthogonal loss between the representation and the global prototype of the same class
-    """
-    参数：
-        rep (Tensor): 表征张量，形状为 (batch_size, feature_dim)。
-        labels (Tensor): 真实标签，形状为 (batch_size,)。
-        protos (Tensor): 原型张量，形状为 (num_classes, feature_dim)。
-    返回：
-        Tensor: 计算得到的正交损失。
-    """
-    # 归一化表征和原型
-    rep_norm = F.normalize(rep, p=2, dim=1)   
-    protos = torch.stack(list(protos.values()))       # 形状: (batch_size, feature_dim)
-    protos_norm = F.normalize(protos, p=2, dim=1)   # 形状: (num_classes, feature_dim)
-
-    # 计算与所有原型的相似度
-    similarity_all = torch.matmul(rep_norm, protos_norm.t())        # 形状: (batch_size, num_classes)
-    similarity_all = torch.abs(similarity_all)
-
-    # 创建掩码，将正确类别的相似度置零
-    mask = torch.ones_like(similarity_all)
-    mask.scatter_(1, labels.view(-1, 1), 0)                        # 正确类别相似度置零
-
-    # 只保留上三角部分的掩码，以避免双重计算
-    upper_tri_mask = torch.triu(torch.ones_like(mask), diagonal=1)
-    mask = mask * upper_tri_mask
-
-    # 计算类间损失
-    similarity_other = similarity_all * mask                        # 仅保留其他类别的相似度，并避免双重计算
-    loss_inter = torch.sum(similarity_other)                        # 对所有类别求和
-    loss_inter = loss_inter / torch.sum(mask)                     # 计算平均损失
-
-    return loss_inter

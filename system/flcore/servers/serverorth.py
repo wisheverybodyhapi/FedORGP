@@ -60,6 +60,7 @@ class FedOrth(Server):
         self.gap = torch.ones(self.num_classes, device=self.device) * 1e9
         self.min_gap = None
         self.max_gap = None
+        self.ablation = args.ablation
 
 
     def train(self):
@@ -76,7 +77,8 @@ class FedOrth(Server):
             # [t.join() for t in threads]
 
             self.receive_protos()
-            self.update_Gen()
+            if not self.ablation:
+                self.update_Gen()
             self.send_protos()
             
             if i%self.eval_gap == 0:
@@ -172,7 +174,10 @@ class FedOrth(Server):
             for k in protos.keys():
                 self.uploaded_protos.append((protos[k], k))
             uploaded_protos_per_client.append(protos)
-
+        
+        if self.ablation:
+            # print('使用平均圆形代替TGP')
+            self.global_protos = proto_cluster(uploaded_protos_per_client)
         self.calculate_prototype_metrics(uploaded_protos_per_client)
 
     def update_Gen(self):
@@ -237,9 +242,9 @@ def inter_orth_loss(rep, labels, protos):
     mask = torch.ones_like(similarity_all)
     mask.scatter_(1, labels.view(-1, 1), 0)                        # 正确类别相似度置零
 
-    # 只保留上三角部分的掩码，以避免双重计算
-    upper_tri_mask = torch.triu(torch.ones_like(mask), diagonal=1)
-    mask = mask * upper_tri_mask
+    # # 只保留上三角部分的掩码，以避免双重计算
+    # upper_tri_mask = torch.triu(torch.ones_like(mask), diagonal=1)
+    # mask = mask * upper_tri_mask
 
     # 计算类间损失
     similarity_other = similarity_all * mask                        # 仅保留其他类别的相似度，并避免双重计算
