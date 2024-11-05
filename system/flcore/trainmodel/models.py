@@ -23,7 +23,7 @@ class BaseHeadSplit(nn.Module):
         if 'MNIST' in args.dataset:
             self.modify_input_channels()
 
-        if args.dataset == 'Flowers102' and 'FedAvgCNN' in self.model_name:
+        if 'Flowers102' in args.dataset and 'FedAvgCNN' in self.model_name:
             self.base.fc1[0] = nn.Linear(10816, 512)
 
         head = None # you may need more code for pre-existing heterogeneous heads
