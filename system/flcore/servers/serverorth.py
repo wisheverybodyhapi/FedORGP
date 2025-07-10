@@ -188,8 +188,13 @@ class FedOrth(Server):
                                       drop_last=False, shuffle=True)
             for proto, y in proto_loader:
                 y = torch.Tensor(y).type(torch.int64).to(self.device)
-                proto_gen = self.PROTO(list(range(self.num_classes)))
+                
+                # 构造字典格式的原型，以匹配正交损失函数的期望
+                proto_gen = {}
+                for class_id in range(self.num_classes):
+                    proto_gen[class_id] = self.PROTO(torch.tensor(class_id, device=self.device))
 
+                # 使用简化的自适应正交损失函数（默认开启自适应）
                 loss = self.s_lamda * intra_orth_loss(proto, y, proto_gen) + self.gamma * inter_orth_loss(proto, y, proto_gen)
 
                 Gen_opt.zero_grad()
@@ -220,63 +225,102 @@ def proto_cluster(protos_list):
 
     return proto_clusters
 
-def inter_orth_loss(rep, labels, protos):
-    # Calculate the orthogonal loss between the representation and the global prototype of the same class
+def inter_orth_loss(rep, labels, protos, adaptive=True):
     """
+    计算类间正交损失，可选择使用自适应权重
+    
     参数：
-        rep (Tensor): 表征张量，形状为 (batch_size, feature_dim)。
-        labels (Tensor): 真实标签，形状为 (batch_size,)。
-        protos (Tensor): 原型张量，形状为 (num_classes, feature_dim)。
+        rep (Tensor): 表征张量，形状为 (batch_size, feature_dim)
+        labels (Tensor): 真实标签，形状为 (batch_size,)
+        protos (dict): 原型字典，键为类别索引
+        adaptive (bool): 是否使用自适应权重，默认True
+        
     返回：
-        Tensor: 计算得到的正交损失。
+        Tensor: 计算得到的正交损失
     """
     # 归一化表征和原型
     rep_norm = F.normalize(rep, p=2, dim=1)   
-    protos_norm = F.normalize(protos, p=2, dim=1)   # 形状: (num_classes, feature_dim)
+    protos_tensor = torch.stack(list(protos.values()))
+    protos_norm = F.normalize(protos_tensor, p=2, dim=1)
 
     # 计算与所有原型的相似度
-    similarity_all = torch.matmul(rep_norm, protos_norm.t())        # 形状: (batch_size, num_classes)
+    similarity_all = torch.matmul(rep_norm, protos_norm.t())
     similarity_all = torch.abs(similarity_all)
 
     # 创建掩码，将正确类别的相似度置零
     mask = torch.ones_like(similarity_all)
-    mask.scatter_(1, labels.view(-1, 1), 0)                        # 正确类别相似度置零
-
-    # # 只保留上三角部分的掩码，以避免双重计算
-    # upper_tri_mask = torch.triu(torch.ones_like(mask), diagonal=1)
-    # mask = mask * upper_tri_mask
-
-    # 计算类间损失
-    similarity_other = similarity_all * mask                        # 仅保留其他类别的相似度，并避免双重计算
-    loss_inter = torch.sum(similarity_other)                        # 对所有类别求和
-    loss_inter = loss_inter / torch.sum(mask)                     # 计算平均损失
+    mask.scatter_(1, labels.view(-1, 1), 0)
+    
+    # 仅保留其他类别的相似度
+    similarity_other = similarity_all * mask
+    
+    if adaptive:
+        # 自适应权重：固定温度参数为0.5，阈值为0.3
+        adaptive_weights = 1.0 + torch.sigmoid((similarity_other - 0.3) / 0.5)
+        weighted_similarity = similarity_other * adaptive_weights
+        loss_inter = torch.sum(weighted_similarity) / torch.sum(mask)
+    else:
+        # 原始实现
+        loss_inter = torch.sum(similarity_other) / torch.sum(mask)
 
     return loss_inter        
 
-def intra_orth_loss(rep, labels, protos):
-    # Calculate the orthogonal loss between the representation and the global prototype of the same class
+def intra_orth_loss(rep, labels, protos, adaptive=True):
     """
+    计算类内正交损失，可选择使用自适应权重
+    
     参数：
-        rep (Tensor): 表征张量，形状为 (batch_size, feature_dim)。
-        labels (Tensor): 真实标签，形状为 (batch_size,)。
-        protos (Tensor): 原型张量，形状为 (num_classes, feature_dim)。
+        rep (Tensor): 表征张量，形状为 (batch_size, feature_dim)
+        labels (Tensor): 真实标签，形状为 (batch_size,)
+        protos (dict): 原型字典，键为类别索引
+        adaptive (bool): 是否使用自适应权重，默认True
+        
     返回：
-        Tensor: 计算得到的正交损失。
+        Tensor: 计算得到的正交损失
     """
     # 归一化表征和原型
     rep_norm = F.normalize(rep, p=2, dim=1)   
-    protos_norm = F.normalize(protos, p=2, dim=1)   # 形状: (num_classes, feature_dim)
+    protos_tensor = torch.stack(list(protos.values()))
+    protos_norm = F.normalize(protos_tensor, p=2, dim=1)
 
     # 获取每个样本对应的原型
-    proto_of_sample = protos_norm[labels]            # 形状: (batch_size, feature_dim)
+    batch_proto_indices = [labels[i].item() for i in range(labels.size(0))]
+    proto_of_sample = torch.stack([protos_norm[idx] for idx in batch_proto_indices])
 
     # 计算类内相似度（余弦相似度）
-    similarity_intra = torch.sum(rep_norm * proto_of_sample, dim=1)  # 形状: (batch_size,)
-    loss_intra = 1 - similarity_intra                                # 希望最大化相似度，因此最小化 (1 - 相似度)
-    loss_intra = torch.sum(loss_intra)
-    loss_intra = loss_intra / similarity_intra.shape[0]  # 计算平均损失
+    similarity_intra = torch.sum(rep_norm * proto_of_sample, dim=1)
+    
+    if adaptive:
+        # 计算与所有原型的相似度矩阵
+        similarity_all = torch.matmul(rep_norm, protos_norm.t())
+        similarity_all = torch.abs(similarity_all)
+        
+        # 创建掩码，只保留其他类别的相似度
+        mask = torch.ones_like(similarity_all)
+        mask.scatter_(1, labels.view(-1, 1), 0)
+        
+        # 计算每个样本与其他类别原型的相似度
+        other_class_sim_matrix = similarity_all * mask
+          
+        # 使用平均相似度（排除零值）
+        # 首先计算每行中非零元素的数量
+        non_zero_counts = torch.sum(mask, dim=1)
+        # 计算每行的总和
+        row_sums = torch.sum(other_class_sim_matrix, dim=1)
+        # 计算平均值（避免除以零）
+        other_class_sim = torch.div(row_sums, non_zero_counts.clamp(min=1))
+        
+        # 自适应权重：固定温度参数为0.5，阈值为0.3
+        adaptive_weights = 1.0 + torch.sigmoid((other_class_sim - 0.3) / 0.5)
+        loss_intra = 1 - similarity_intra
+        weighted_loss_intra = loss_intra * adaptive_weights
+        loss = torch.sum(weighted_loss_intra) / rep.shape[0]
+    else:
+        # 原始实现
+        loss_intra = 1 - similarity_intra
+        loss = torch.sum(loss_intra) / similarity_intra.shape[0]
 
-    return loss_intra 
+    return loss
 
 class Trainable_prototypes(nn.Module):
     def __init__(self, num_classes, server_hidden_dim, feature_dim, device):

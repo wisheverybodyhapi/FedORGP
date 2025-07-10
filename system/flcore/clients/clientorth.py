@@ -7,6 +7,57 @@ import time
 from flcore.clients.clientbase import Client, load_item, save_item
 from collections import defaultdict
 from tqdm import tqdm
+from sklearn.cluster import KMeans
+
+def filter_outliers_multi_metric(features, alpha=0.5):
+    """
+    Filter outliers using multiple metrics: Euclidean distance and cosine similarity
+    使用多维度度量筛选异常值：欧氏距离和余弦相似度
+    
+    Args:
+        features: List of feature tensors
+        alpha: Weight for combining distance and cosine similarity scores (0-1)
+               alpha=0.5 表示两种度量同等重要
+    """
+    if len(features) <= 2:
+        return features
+    
+    feats = torch.stack(features).cpu()
+    
+    # 使用均值作为中心点（简化聚类步骤）
+    center = torch.mean(feats, dim=0)
+    
+    # Calculate Euclidean distances
+    dists = torch.norm(feats - center, dim=1)
+    
+    # Calculate cosine similarities
+    feats_norm = F.normalize(feats, p=2, dim=1)
+    center_norm = F.normalize(center.unsqueeze(0), p=2, dim=1)
+    cos_sims = torch.matmul(feats_norm, center_norm.t()).squeeze(1)
+    
+    # 固定阈值策略（经验值）
+    dist_threshold = torch.mean(dists) + torch.std(dists)  # 1倍标准差
+    cos_threshold = torch.clamp(torch.mean(cos_sims) - 0.5 * torch.std(cos_sims), min=0.3, max=0.9)
+    
+    # Combined scoring using alpha parameter
+    # Normalize scores to [0, 1]
+    dist_scores = 1 - (dists - torch.min(dists)) / (torch.max(dists) - torch.min(dists) + 1e-8)
+    cos_scores = (cos_sims - torch.min(cos_sims)) / (torch.max(cos_sims) - torch.min(cos_sims) + 1e-8)
+    
+    # Combined score (核心创新点)
+    combined_scores = alpha * dist_scores + (1 - alpha) * cos_scores
+    
+    # 简化筛选策略：主要基于组合分数
+    keep_idx = (dists <= dist_threshold) & (cos_sims >= cos_threshold) & (combined_scores >= torch.median(combined_scores))
+    
+    filtered = [features[i] for i in range(len(features)) if keep_idx[i]]
+    
+    # Ensure at least one sample is kept
+    if len(filtered) == 0:
+        best_idx = torch.argmax(combined_scores)
+        filtered = [features[best_idx]]
+    
+    return filtered
 
 class clientOrtho(Client):
     def __init__(self, args, id, train_samples, test_samples, **kwargs):
@@ -82,6 +133,12 @@ class clientOrtho(Client):
                 for i, yy in enumerate(y):
                     y_c = yy.item()
                     protos[y_c].append(rep[i, :].detach().data)
+
+        # 对每个类别的特征做聚类去除异常值
+        for label in protos:
+            print(f"label: {label}, length: {len(protos[label])}")
+            protos[label] = filter_outliers_multi_metric(protos[label], alpha=0.5)
+            print(f"label: {label}, length: {len(protos[label])}")
 
         self.protos = agg_func(protos)
 
