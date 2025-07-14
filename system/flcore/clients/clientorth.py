@@ -9,55 +9,6 @@ from collections import defaultdict
 from tqdm import tqdm
 from sklearn.cluster import KMeans
 
-def filter_outliers_multi_metric(features, alpha=0.5):
-    """
-    Filter outliers using multiple metrics: Euclidean distance and cosine similarity
-    使用多维度度量筛选异常值：欧氏距离和余弦相似度
-    
-    Args:
-        features: List of feature tensors
-        alpha: Weight for combining distance and cosine similarity scores (0-1)
-               alpha=0.5 表示两种度量同等重要
-    """
-    if len(features) <= 2:
-        return features
-    
-    feats = torch.stack(features).cpu()
-    
-    # 使用均值作为中心点（简化聚类步骤）
-    center = torch.mean(feats, dim=0)
-    
-    # Calculate Euclidean distances
-    dists = torch.norm(feats - center, dim=1)
-    
-    # Calculate cosine similarities
-    feats_norm = F.normalize(feats, p=2, dim=1)
-    center_norm = F.normalize(center.unsqueeze(0), p=2, dim=1)
-    cos_sims = torch.matmul(feats_norm, center_norm.t()).squeeze(1)
-    
-    # 固定阈值策略（经验值）
-    dist_threshold = torch.mean(dists) + torch.std(dists)  # 1倍标准差
-    cos_threshold = torch.clamp(torch.mean(cos_sims) - 0.5 * torch.std(cos_sims), min=0.3, max=0.9)
-    
-    # Combined scoring using alpha parameter
-    # Normalize scores to [0, 1]
-    dist_scores = 1 - (dists - torch.min(dists)) / (torch.max(dists) - torch.min(dists) + 1e-8)
-    cos_scores = (cos_sims - torch.min(cos_sims)) / (torch.max(cos_sims) - torch.min(cos_sims) + 1e-8)
-    
-    # Combined score (核心创新点)
-    combined_scores = alpha * dist_scores + (1 - alpha) * cos_scores
-    
-    # 简化筛选策略：主要基于组合分数
-    keep_idx = (dists <= dist_threshold) & (cos_sims >= cos_threshold) & (combined_scores >= torch.median(combined_scores))
-    
-    filtered = [features[i] for i in range(len(features)) if keep_idx[i]]
-    
-    # Ensure at least one sample is kept
-    if len(filtered) == 0:
-        best_idx = torch.argmax(combined_scores)
-        filtered = [features[best_idx]]
-    
-    return filtered
 
 class clientOrtho(Client):
     def __init__(self, args, id, train_samples, test_samples, **kwargs):
@@ -66,6 +17,7 @@ class clientOrtho(Client):
 
         self.loss_mse = nn.MSELoss()
         self.c_lamda = args.c_lamda
+        self.alpha = args.alpha
 
         self.global_protos = None
         self.protos = None
@@ -136,9 +88,7 @@ class clientOrtho(Client):
 
         # 对每个类别的特征做聚类去除异常值
         for label in protos:
-            print(f"label: {label}, length: {len(protos[label])}")
-            protos[label] = filter_outliers_multi_metric(protos[label], alpha=0.5)
-            print(f"label: {label}, length: {len(protos[label])}")
+            protos[label] = self.filter_outliers_multi_metric(protos[label], alpha=self.alpha)
 
         self.protos = agg_func(protos)
 
@@ -167,6 +117,116 @@ class clientOrtho(Client):
             return test_acc, test_num, 0
         else:
             return 0, 1e-5, 0
+
+    def filter_outliers_multi_metric(self, features, alpha=0.5, min_keep_ratio=0.5):
+        """
+        Simplified adaptive multi-metric feature filtering
+        简化的自适应多维度特征筛选，减少超参数数量
+        
+        Args:
+            features: List of feature tensors
+            alpha: Weight for combining distance and cosine similarity scores (0-1) - 唯一超参数
+            min_keep_ratio: Minimum ratio of features to keep (防止过度筛选) - 固定为0.5
+        """
+        if len(features) <= 2:
+            return features
+        
+        feats = torch.stack(features).cpu()
+        n_samples = feats.shape[0]
+        
+        # 使用均值作为中心点
+        center = torch.mean(feats, dim=0)
+        
+        # Calculate Euclidean distances
+        dists = torch.norm(feats - center, dim=1)
+        
+        # Calculate cosine similarities
+        feats_norm = F.normalize(feats, p=2, dim=1)
+        center_norm = F.normalize(center.unsqueeze(0), p=2, dim=1)
+        cos_sims = torch.matmul(feats_norm, center_norm.t()).squeeze(1)
+        
+        # === 动态自适应权重计算 ===
+        # 基于标准差比值的动态调整，更加科学和自适应
+        dist_std = torch.std(dists)
+        cos_std = torch.std(cos_sims)
+        
+        # 防止除零错误
+        dist_std = torch.clamp(dist_std, min=1e-8)
+        cos_std = torch.clamp(cos_std, min=1e-8)
+        
+        # 计算变异系数（标准差/均值），更公平地比较不同指标的稳定性
+        dist_mean = torch.mean(dists)
+        cos_mean = torch.mean(cos_sims)
+        
+        # 防止除零
+        dist_mean = torch.clamp(dist_mean, min=1e-8)
+        cos_mean = torch.clamp(torch.abs(cos_mean), min=1e-8)
+        
+        # 变异系数：标准差除以均值的绝对值
+        dist_cv = dist_std / dist_mean
+        cos_cv = cos_std / cos_mean
+        
+        # 基于变异系数的比值进行调整，更加公平
+        cv_ratio = dist_cv / cos_cv
+        
+        # 改进的动态调整：使用更平滑的sigmoid函数
+        # 当cv_ratio = 1时，adjustment_factor = 1（无调整）
+        # 使用tanh函数实现平滑调整
+        adjustment_factor = 1.0 - 0.3 * torch.tanh(0.5 * (cv_ratio - 1.0)).item()
+        
+        # 限制调整范围在[0.4, 1.6]之间，允许更大的调整幅度
+        adjustment_factor = torch.clamp(torch.tensor(adjustment_factor), 0.4, 1.6).item()
+        
+        # 应用动态调整
+        adaptive_alpha = alpha * adjustment_factor
+        
+        # 最终clamp，确保权重在合理范围内
+        adaptive_alpha = torch.clamp(torch.tensor(adaptive_alpha), 0.1, 0.9).item()
+        
+        # === 归一化分数计算 ===
+        # 归一化到[0,1]范围，距离越小分数越高，相似度越高分数越高
+        dist_scores = 1 - (dists - torch.min(dists)) / (torch.max(dists) - torch.min(dists) + 1e-8)
+        cos_scores = (cos_sims - torch.min(cos_sims)) / (torch.max(cos_sims) - torch.min(cos_sims) + 1e-8)
+        
+        # 组合分数：使用自适应alpha
+        combined_scores = adaptive_alpha * dist_scores + (1 - adaptive_alpha) * cos_scores
+        
+        # === 简化的异常值检测 ===
+        # 使用固定的IQR方法，移除复杂的条件分支
+        q1 = torch.quantile(combined_scores, 0.25)
+        q3 = torch.quantile(combined_scores, 0.75)
+        iqr = q3 - q1
+        
+        # 固定IQR倍数为1.5（经典异常值检测标准）
+        combined_threshold = q1 - 1.5 * iqr
+        
+        # === 移除冗余的basic_keep，直接使用组合分数 ===
+        keep_idx = combined_scores >= combined_threshold
+        
+        # 防止过度筛选：确保至少保留min_keep_ratio的样本
+        n_keep = torch.sum(keep_idx).item()
+        min_keep = int(n_samples * min_keep_ratio)
+        
+        if n_keep < min_keep:
+            # 如果筛选太严格，保留分数最高的min_keep个样本
+            _, top_indices = torch.topk(combined_scores, min_keep)
+            keep_idx = torch.zeros(n_samples, dtype=torch.bool)
+            keep_idx[top_indices] = True
+        
+        filtered = [features[i] for i in range(len(features)) if keep_idx[i]]
+        
+        # 确保至少保留一个样本
+        if len(filtered) == 0:
+            best_idx = torch.argmax(combined_scores)
+            filtered = [features[best_idx]]
+    
+        # 详细的调试信息
+        # self.logger.write(f"Client {self.id} - Adaptive filtering debug:")
+        # self.logger.write(f"  Original: {len(features)}, Filtered: {len(filtered)}, Keep ratio: {len(filtered)/len(features):.2f}")
+        # self.logger.write(f"  dist_cv: {dist_cv:.4f}, cos_cv: {cos_cv:.4f}, cv_ratio: {cv_ratio:.4f}")
+        # self.logger.write(f"  adjustment_factor: {adjustment_factor:.4f}, adaptive_alpha: {adaptive_alpha:.3f}")
+        
+        return filtered
 
     def train_metrics(self):
         trainloader = self.load_train_data()
@@ -243,3 +303,4 @@ def intra_orth_loss(rep, labels, protos):
     loss_intra = loss_intra / similarity_intra.shape[0]  # 计算平均损失
 
     return loss_intra
+

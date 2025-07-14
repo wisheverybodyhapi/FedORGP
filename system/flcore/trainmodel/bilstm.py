@@ -63,8 +63,10 @@ class BiLSTM_TextClassification(nn.Module):
 
         input_seq = self.embedding_dropout_layer(input_seq)
 
-        h_0 = torch.zeros((self.num_layers*2, batch_size, self.hidden_size)).to(device='cuda')
-        c_0 = torch.zeros((self.num_layers*2, batch_size, self.hidden_size)).to(device='cuda')
+        # 动态获取输入张量的设备，而不是硬编码GPU 0
+        device = input_seq.device
+        h_0 = torch.zeros((self.num_layers*2, batch_size, self.hidden_size)).to(device)
+        c_0 = torch.zeros((self.num_layers*2, batch_size, self.hidden_size)).to(device)
 
         input_seq = input_seq.permute(1, 0, 2)
         output, (final_hidden_state, final_cell_state) = self.lstm_layer(input_seq, (h_0, c_0))

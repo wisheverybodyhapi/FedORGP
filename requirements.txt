@@ -23,3 +23,7 @@ diffusers
 accelerate
 transformers
 numpy==1.26.4
+timm==0.4.12
+ftfy==6.1.1
+dill==0.3.4
+ninja==1.10.2

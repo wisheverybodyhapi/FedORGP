@@ -348,7 +348,6 @@ if __name__ == "__main__":
     parser.add_argument('-hd', "--hidden_dim", type=int, default=512)
     parser.add_argument('-se', "--server_epochs", type=int, default=1)
     # FML
-    parser.add_argument('-al', "--alpha", type=float, default=1.0)
     parser.add_argument('-bt', "--beta", type=float, default=1.0)
     # FedKD
     parser.add_argument('-mlr', "--mentee_learning_rate", type=float, default=0.005)
@@ -362,6 +361,7 @@ if __name__ == "__main__":
     parser.add_argument('-clam', "--c_lamda", type=float, default=1.0)
     parser.add_argument('-slam', "--s_lamda", type=float, default=1.0)
     parser.add_argument('-gam', "--gamma", type=float, default=1.0)
+    parser.add_argument('-al', "--alpha", type=float, default=0.5)
     # FedKTL
     parser.add_argument('-GPath', "--generator_path", type=str, default='stylegan/stylegan-xl-models/imagenet64.pkl')
     parser.add_argument('-prompt', "--stable_diffusion_prompt", type=str, default='a cat')

@@ -33,13 +33,16 @@ class FedKTL(Server):
         self.set_slow_clients()
         self.set_clients(clientKTL)
 
-        print(f"\nJoin ratio / total clients: {self.join_ratio} / {self.num_clients}")
-        print("Finished creating server and clients.")
+        self.logger.write(f"\nJoin ratio / total clients: {self.join_ratio} / {self.num_clients}")
+        self.logger.write("Finished creating server and clients.")
 
         # self.load_model()
         self.Budget = []
 
+        self.data_generated = None
+
         self.feature_dim = args.feature_dim
+        self.server_learning_rate = args.server_learning_rate
         self.gen_batch_size = args.gen_batch_size
         self.server_batch_size = args.server_batch_size
         self.server_epochs = args.server_epochs
@@ -59,17 +62,14 @@ class FedKTL(Server):
                 break
 
             with open(args.generator_path, 'rb') as f:
-                G = pickle.load(f)['G_ema'].to(self.device)
-            save_item(G, self.role, 'G', self.save_folder_name)
-            print('Generator', G)
+                self.G = pickle.load(f)['G_ema'].to(self.device)
+            print('Generator', self.G)
 
-            F = Feature_Transformer(self.ETF_dim, G.w_dim).to(self.device)
-            save_item(F, self.role, 'F', self.save_folder_name)
-            print('Feature_Transformer', F)
+            self.F = Feature_Transformer(self.ETF_dim, self.G.w_dim).to(self.device)
+            print('Feature_Transformer', self.F)
 
-            Centroids = nn.Embedding(self.num_classes, G.w_dim).to(self.device)
-            save_item(Centroids, self.role, 'Centroids', self.save_folder_name)
-            print('Centroids', Centroids)
+            self.Centroids = nn.Embedding(self.num_classes, self.G.w_dim).to(self.device)
+            print('Centroids', self.Centroids)
 
             while True:
                 try:
@@ -77,37 +77,35 @@ class FedKTL(Server):
                     I = torch.eye(self.num_classes)
                     one = torch.ones(self.num_classes, self.num_classes)
                     F = np.sqrt(self.num_classes / (self.num_classes-1)) * torch.matmul(P, I-((1/self.num_classes) * one))
-                    ETF = F.requires_grad_(False).to(self.device)
-                    save_item(ETF, self.role, 'ETF', self.save_folder_name)
+                    self.ETF = F.requires_grad_(False).to(self.device)
                     break
                 except AssertionError:
                     pass
             
-            clientprocess = transforms.Compose(
+            self.clientprocess = transforms.Compose(
                 [transforms.Resize(size=self.img_shape[-1]), 
                 transforms.CenterCrop(size=(self.img_shape[-1], self.img_shape[-1])), 
                 transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
-            save_item(clientprocess, self.role, 'clientprocess', self.save_folder_name)
-            print('clientprocess', clientprocess)
 
-            proj_fc = nn.Linear(self.feature_dim, G.w_dim).to(self.device)
-            save_item(proj_fc, self.role, 'proj_fc', self.save_folder_name)
+            # print('clientprocess', clientprocess)
+
+            self.proj_fc = nn.Linear(self.feature_dim, self.G.w_dim).to(self.device)
         
         self.MSEloss = nn.MSELoss()
 
 
     def train(self):
-        for i in range(self.global_rounds+1):
+        for i in range(self.start_round, self.end_round):
             s_t = time.time()
             self.selected_clients = self.select_clients()
 
             if i%self.eval_gap == 0:
-                print(f"\n-------------Round number: {i}-------------")
-                print("\nEvaluate heterogeneous models")
-                self.evaluate()
+                self.logger.write(f"\n-------------Round number: {i}-------------")
+                self.logger.write("\nEvaluate heterogeneous models")
+                self.evaluate(self.ETF)
 
             for client in self.selected_clients:
-                client.train()
+                client.train(self.ETF, self.data_generated, self.proj_fc)
                 client.collect_protos()
 
             # threads = [Thread(target=client.train)
@@ -125,9 +123,9 @@ class FedKTL(Server):
             if self.auto_break and self.check_done(acc_lss=[self.rs_test_acc], top_cnt=self.top_cnt):
                 break
 
-        print("\nBest accuracy.")
-        print(max(self.rs_test_acc))
-        print(sum(self.Budget[1:])/len(self.Budget[1:]))
+        self.logger.write("\nBest accuracy.")
+        # self.logger.write(max(self.rs_test_acc))
+        # self.logger.write(sum(self.Budget[1:])/len(self.Budget[1:]))
 
         self.save_results()
 
@@ -135,16 +133,24 @@ class FedKTL(Server):
     def receive_protos(self):
         assert (len(self.selected_clients) > 0)
 
+        active_clients = random.sample(
+            self.selected_clients, int((1-self.client_drop_rate) * self.current_num_join_clients))
+
         self.uploaded_ids = []
+        self.uploaded_weights = []
+        tot_samples = 0
         uploaded_protos = []
-        for client in self.selected_clients:
+        for client in active_clients:
+            tot_samples += client.train_samples
             self.uploaded_ids.append(client.id)
-            protos = load_item(client.role, 'protos', client.save_folder_name)
+            self.uploaded_weights.append(client.train_samples)
+            protos = client.protos
             for cc in protos.keys():
                 y = torch.tensor(cc, dtype=torch.int64, device=self.device)
                 uploaded_protos.append((protos[cc], y))
-            
-        save_item(uploaded_protos, self.role, 'uploaded_protos', self.save_folder_name)
+        for i, w in enumerate(self.uploaded_weights):
+            self.uploaded_weights[i] = w / tot_samples
+        self.uploaded_protos = uploaded_protos
 
     @torch.no_grad()
     def set_Centroids(self, uploaded_protos, F, Centroids): # set Centroids to the centroids of latent vectors
@@ -162,79 +168,143 @@ class FedKTL(Server):
                 weight.data = protos[i].data.clone()
 
     def align(self):
-        uploaded_protos = load_item(self.role, 'uploaded_protos', self.save_folder_name)
-        G = load_item(self.role, 'G', self.save_folder_name).eval().requires_grad_(False)
-        F = load_item(self.role, 'F', self.save_folder_name)
-        Centroids = load_item(self.role, 'Centroids', self.save_folder_name)
-        self.set_Centroids(uploaded_protos, F, Centroids)
+        self.set_Centroids(self.uploaded_protos, self.F, self.Centroids)
 
-        opt_F = torch.optim.Adam(F.parameters(), 
+        opt_F = torch.optim.Adam(self.F.parameters(), 
                                  lr=self.server_learning_rate, 
                                  betas=(0.9, 0.999),
                                  eps=1e-08, 
                                  weight_decay=0, 
                                  amsgrad=False)
-        opt_Centroids = torch.optim.Adam(Centroids.parameters(), 
+        opt_Centroids = torch.optim.Adam(self.Centroids.parameters(), 
                                     lr=self.server_learning_rate, 
                                     betas=(0.9, 0.999),
                                     eps=1e-08, 
                                     weight_decay=0, 
                                     amsgrad=False)
 
-        print('\n----Server aligning ...----\n')
-        F.train()
-        Centroids.train()
+        self.logger.write('\n----Server aligning ...----\n')
+        self.F.train()
+        self.Centroids.train()
         for _ in range(self.server_epochs):
-            proto_loader = DataLoader(uploaded_protos, self.server_batch_size, drop_last=False, shuffle=True)
+            proto_loader = DataLoader(self.uploaded_protos, self.server_batch_size, drop_last=False, shuffle=True)
             for P, y in proto_loader:
-                Q = F(P)
-                latents = gen_utils.get_w_from_seed(G, P.shape[0], self.device).detach()
+                Q = self.F(P)
+                latents = gen_utils.get_w_from_seed(self.G, P.shape[0], self.device).detach()
                 latents = latents[:, 0, :]
                 loss = MMD(Q, latents, 'rbf', self.device)
 
-                centroids = Centroids(y) # approximate transformed class centroids to reduce computational cost
+                centroids = self.Centroids(y) # approximate transformed class centroids to reduce computational cost
                 loss += self.MSEloss(Q, centroids) * self.lamda
 
                 opt_F.zero_grad()
                 opt_Centroids.zero_grad()
                 loss.backward()
-                torch.nn.utils.clip_grad_norm_(F.parameters(), 100)
-                torch.nn.utils.clip_grad_norm_(Centroids.parameters(), 100)
+                torch.nn.utils.clip_grad_norm_(self.F.parameters(), 100)
+                torch.nn.utils.clip_grad_norm_(self.Centroids.parameters(), 100)
                 opt_F.step()
                 opt_Centroids.step()
 
-        self.set_Centroids(uploaded_protos, F, Centroids)
-        latent_centroids = Centroids(self.classes_ids_tensor).detach().data
+        self.set_Centroids(self.uploaded_protos, self.F, self.Centroids)
+        self.latent_centroids = self.Centroids(self.classes_ids_tensor).detach().data
 
-        save_item(F, self.role, 'F', self.save_folder_name)
-        save_item(Centroids, self.role, 'Centroids', self.save_folder_name)
-        save_item(latent_centroids, self.role, 'latent_centroids', self.save_folder_name)
 
     @torch.no_grad()
     def generate_images(self, R):
-        print('\n----Server generating ...----\n')
-        G = load_item(self.role, 'G', self.save_folder_name).eval().requires_grad_(False)
-        clientprocess = load_item(self.role, 'clientprocess', self.save_folder_name)
+        self.logger.write('\n----Server generating ...----\n')
+        self.G.eval().requires_grad_(False)
+
         data_generated = []
 
-        latent_centroids = load_item(self.role, 'latent_centroids', self.save_folder_name)
-        latents_loader = DataLoader(latent_centroids, self.gen_batch_size, drop_last=False, shuffle=False)
+        latents_loader = DataLoader(self.latent_centroids, self.gen_batch_size, drop_last=False, shuffle=False)
         for latents in latents_loader:
-            latents_ = latents.unsqueeze(1).repeat(1, G.num_ws, 1)
-            raw_images = gen_utils.w_to_img(G, latents_, to_np=False).clamp(0, 255) / 255
-            images = clientprocess(raw_images)
+            latents_ = latents.unsqueeze(1).repeat(1, self.G.num_ws, 1)
+            raw_images = gen_utils.w_to_img(self.G, latents_, to_np=False).clamp(0, 255) / 255
+            images = self.clientprocess(raw_images)
             data = [(xx, yy) for xx, yy in zip(images, latents)]
             data_generated.extend(data)
 
-            img = (raw_images * 255).permute(0, 2, 3, 1).clamp(0, 255).to(torch.uint8).cpu().numpy()
-            PIL.Image.fromarray(
-                gen_utils.create_image_grid(
-                    img, grid_size=(self.gen_batch_size, 1)), 
-                    'RGB').save(
-                        os.path.join(self.save_folder_name, f"Server_image_{R}.png"))
+            # img = (raw_images * 255).permute(0, 2, 3, 1).clamp(0, 255).to(torch.uint8).cpu().numpy()
+            # PIL.Image.fromarray(
+            #     gen_utils.create_image_grid(
+            #         img, grid_size=(self.gen_batch_size, 1)), 
+            #         'RGB').save(
+            #             os.path.join(self.save_folder_name, f"Server_image_{R}.png"))
 
-        save_item(data_generated, self.role, 'data_generated', self.save_folder_name)
+        self.data_generated = data_generated
 
+    def test_metrics(self, Server_ETF):        
+        num_samples = []
+        tot_correct = []
+        tot_auc = []
+        for c in self.clients:
+            ct, ns, auc = c.test_metrics(Server_ETF)
+            tot_correct.append(ct*1.0)
+            self.logger.write(f'Client {c.id}: Acc: {ct*1.0/ns}, AUC: {auc}')
+            tot_auc.append(auc*ns)
+            num_samples.append(ns)
+
+        ids = [c.id for c in self.clients]
+
+        return ids, num_samples, tot_correct, tot_auc
+
+    # evaluate selected clients
+    def evaluate(self, Server_ETF, acc=None, loss=None):
+        stats = self.test_metrics(Server_ETF)
+        # stats_train = self.train_metrics()
+
+        test_acc = sum(stats[2])*1.0 / sum(stats[1])
+        test_auc = sum(stats[3])*1.0 / sum(stats[1])
+        # train_loss = sum(stats_train[2])*1.0 / sum(stats_train[1])
+        accs = [a / n for a, n in zip(stats[2], stats[1])]
+        aucs = [a / n for a, n in zip(stats[3], stats[1])]
+        
+        if acc == None:
+            self.rs_test_acc.append(test_acc)
+        else:
+            acc.append(test_acc)
+        
+        # if loss == None:
+        #     self.rs_train_loss.append(train_loss)
+        # else:
+        #     loss.append(train_loss)
+
+        # self.logger.write("Averaged Train Loss: {:.4f}".format(train_loss))
+        self.logger.write("Averaged Test Accuracy: {:.4f}".format(test_acc))
+        self.logger.write("Averaged Test AUC: {:.4f}".format(test_auc))
+        # self.print_(test_acc, train_acc, train_loss)
+        self.logger.write("Std Test Accuracy: {:.4f}".format(np.std(accs)))
+        self.logger.write("Std Test AUC: {:.4f}".format(np.std(aucs)))
+
+    def print_(self, test_acc, test_auc, train_loss):
+        self.logger.write("Average Test accuracy: {:.4f}".format(test_acc))
+        self.logger.write("Average Test AUC: {:.4f}".format(test_auc))
+        self.logger.write("Average Train Loss: {:.4f}".format(train_loss))
+
+    def check_done(self, acc_lss, top_cnt=None, div_value=None):
+        for acc_ls in acc_lss:
+            if top_cnt != None and div_value != None:
+                find_top = len(acc_ls) - torch.topk(torch.tensor(acc_ls), 1).indices[0] > top_cnt
+                find_div = len(acc_ls) > 1 and np.std(acc_ls[-top_cnt:]) < div_value
+                if find_top and find_div:
+                    pass
+                else:
+                    return False
+            elif top_cnt != None:
+                find_top = len(acc_ls) - torch.topk(torch.tensor(acc_ls), 1).indices[0] > top_cnt
+                if find_top:
+                    pass
+                else:
+                    return False
+            elif div_value != None:
+                find_div = len(acc_ls) > 1 and np.std(acc_ls[-top_cnt:]) < div_value
+                if find_div:
+                    pass
+                else:
+                    return False
+            else:
+                raise NotImplementedError
+        return True
 
 # https://github.com/NeuralCollapseApplications/ImbalancedLearning/blob/main/models/resnet.py#L347
 def generate_random_orthogonal_matrix(feat_in, num_classes):
@@ -314,3 +384,4 @@ class Feature_Transformer(nn.Module):
         out = self.mlp(x)
         return out
     
+

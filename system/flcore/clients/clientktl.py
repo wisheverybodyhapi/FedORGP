@@ -26,22 +26,21 @@ class clientKTL(Client):
         self.MSEloss = nn.MSELoss()
 
 
-    def train(self):
+    def train(self, Server_ETF, Server_data_generated, Server_proj_fc):
         trainloader = self.load_train_data()
-        model = load_item(self.role, 'model', self.save_folder_name)
-        ETF = load_item('Server', 'ETF', self.save_folder_name)
+        ETF = Server_ETF
         ETF = F.normalize(ETF.T)
 
-        data_generated = load_item('Server', 'data_generated', self.save_folder_name)
+        data_generated = Server_data_generated
         if data_generated is not None:
             gen_loader = DataLoader(data_generated, self.batch_size, drop_last=False, shuffle=True)
             gen_iter = iter(gen_loader)
-        proj_fc = load_item('Server', 'proj_fc', self.save_folder_name)
+        proj_fc = Server_proj_fc
 
-        optimizer = torch.optim.SGD(model.parameters(), lr=self.learning_rate)
+        optimizer = torch.optim.SGD(self.model.parameters(), lr=self.learning_rate)
         opt_proj_fc = torch.optim.SGD(proj_fc.parameters(), lr=self.learning_rate)
         # model.to(self.device)
-        model.train()
+        self.model.train()
         
         start_time = time.time()
 
@@ -58,7 +57,7 @@ class clientKTL(Client):
                 y = y.to(self.device)
                 if self.train_slow:
                     time.sleep(0.1 * np.abs(np.random.rand()))
-                proj = model(x)
+                proj = self.model(x)
                 proj = F.normalize(proj)
                 cosine = F.linear(proj, ETF)
 
@@ -84,7 +83,7 @@ class clientKTL(Client):
                         x_G = x_G.to(self.device)
                     y_G = y_G.to(self.device)
 
-                    rep_G = model.base(x_G)
+                    rep_G = self.model.base(x_G)
                     proj_G = proj_fc(rep_G)
                     
                     loss += self.MSEloss(proj_G, y_G) * self.mu
@@ -92,22 +91,20 @@ class clientKTL(Client):
                 optimizer.zero_grad()
                 opt_proj_fc.zero_grad()
                 loss.backward()
-                torch.nn.utils.clip_grad_norm_(model.parameters(), 100)
+                torch.nn.utils.clip_grad_norm_(self.model.parameters(), 100)
                 torch.nn.utils.clip_grad_norm_(proj_fc.parameters(), 100)
                 optimizer.step()
                 opt_proj_fc.step()
 
-        save_item(model, self.role, 'model', self.save_folder_name)
-
         self.train_time_cost['num_rounds'] += 1
         self.train_time_cost['total_cost'] += time.time() - start_time
 
-    def test_metrics(self):
+    def test_metrics(self, Server_ETF):
         testloaderfull = self.load_test_data()
-        model = load_item(self.role, 'model', self.save_folder_name)
-        ETF = load_item('Server', 'ETF', self.save_folder_name)
+        ETF = Server_ETF
+        ETF = F.normalize(ETF.T)
         # model.to(self.device)
-        model.eval()
+        self.model.eval()
 
         test_acc = 0
         test_num = 0
@@ -121,8 +118,8 @@ class clientKTL(Client):
                 else:
                     x = x.to(self.device)
                 y = y.to(self.device)
-                proj = model(x)
-                cosine = F.linear(F.normalize(proj), F.normalize(ETF.T))
+                proj = self.model(x)
+                cosine = F.linear(F.normalize(proj), ETF)
 
                 test_acc += (torch.sum(torch.argmax(cosine, dim=1) == y)).item()
                 test_num += y.shape[0]
@@ -145,9 +142,8 @@ class clientKTL(Client):
 
     def collect_protos(self):
         trainloader = self.load_train_data()
-        model = load_item(self.role, 'model', self.save_folder_name)
 
-        model.eval()
+        self.model.eval()
 
         protos = defaultdict(list)
         with torch.no_grad():
@@ -159,14 +155,14 @@ class clientKTL(Client):
                 y = y.to(self.device)
                 if self.train_slow:
                     time.sleep(0.1 * np.abs(np.random.rand()))
-                proj = model(x)
+                proj = self.model(x)
                 proj = F.normalize(proj)
 
                 for i, yy in enumerate(y):
                     y_c = yy.item()
                     protos[y_c].append(proj[i, :].detach().data)
 
-        save_item(agg_func(protos), self.role, 'protos', self.save_folder_name)
+        self.protos = agg_func(protos)
 
 
 def agg_func(protos):
