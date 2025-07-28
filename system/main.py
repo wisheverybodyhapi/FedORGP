@@ -362,6 +362,8 @@ if __name__ == "__main__":
     parser.add_argument('-slam', "--s_lamda", type=float, default=1.0)
     parser.add_argument('-gam', "--gamma", type=float, default=1.0)
     parser.add_argument('-al', "--alpha", type=float, default=0.5)
+    parser.add_argument('-abs', "--ablation_server", type=bool, default=False)
+    parser.add_argument('-abc', "--ablation_client", type=bool, default=False)
     # FedKTL
     parser.add_argument('-GPath', "--generator_path", type=str, default='stylegan/stylegan-xl-models/imagenet64.pkl')
     parser.add_argument('-prompt', "--stable_diffusion_prompt", type=str, default='a cat')
@@ -393,6 +395,8 @@ if __name__ == "__main__":
     if args.device == "cuda" and not torch.cuda.is_available():
         print("\ncuda is not avaiable.\n")
         args.device = "cpu"
+
+    print(f"正在使用gpu:{args.device_id}, 使用设备:{args.device}")
 
 
     # if args.dataset == "mnist" or args.dataset == "fmnist":

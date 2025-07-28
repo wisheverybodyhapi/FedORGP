@@ -60,7 +60,7 @@ class FedOrth(Server):
         self.gap = torch.ones(self.num_classes, device=self.device) * 1e9
         self.min_gap = None
         self.max_gap = None
-        self.ablation = args.ablation
+        self.ablation_server = args.ablation_server
 
 
     def train(self):
@@ -77,8 +77,7 @@ class FedOrth(Server):
             # [t.join() for t in threads]
 
             self.receive_protos()
-            if not self.ablation:
-                self.update_Gen()
+            self.update_Gen()
             self.send_protos()
             
             if i%self.eval_gap == 0:
@@ -175,10 +174,7 @@ class FedOrth(Server):
                 self.uploaded_protos.append((protos[k], k))
             uploaded_protos_per_client.append(protos)
         
-        if self.ablation:
-            # print('使用平均圆形代替TGP')
-            self.global_protos = proto_cluster(uploaded_protos_per_client)
-        self.calculate_prototype_metrics(uploaded_protos_per_client)
+        # self.calculate_prototype_metrics(uploaded_protos_per_client)
 
     def update_Gen(self):
         Gen_opt = torch.optim.SGD(self.PROTO.parameters(), lr=self.server_learning_rate)
@@ -194,8 +190,13 @@ class FedOrth(Server):
                 for class_id in range(self.num_classes):
                     proto_gen[class_id] = self.PROTO(torch.tensor(class_id, device=self.device))
 
-                # 使用简化的自适应正交损失函数（默认开启自适应）
-                loss = self.s_lamda * intra_orth_loss(proto, y, proto_gen) + self.gamma * inter_orth_loss(proto, y, proto_gen)
+                if not self.ablation_server:
+                    self.logger.write(f"Server uses adaptive orthogonality loss")
+                    # 使用简化的自适应正交损失函数（默认开启自适应）
+                    loss = self.s_lamda * intra_orth_loss(proto, y, proto_gen) + self.gamma * inter_orth_loss(proto, y, proto_gen)
+                else:
+                    self.logger.write(f"Server Ablation: Server uses non-adaptive orthogonality loss")
+                    loss = self.s_lamda * intra_orth_loss(proto, y, proto_gen, adaptive=False) + self.gamma * inter_orth_loss(proto, y, proto_gen, adaptive=False)
 
                 Gen_opt.zero_grad()
                 loss.backward()
@@ -251,16 +252,16 @@ def inter_orth_loss(rep, labels, protos, adaptive=True):
     mask = torch.ones_like(similarity_all)
     mask.scatter_(1, labels.view(-1, 1), 0)
     
-    # 仅保留其他类别的相似度
-    similarity_other = similarity_all * mask
-    
     if adaptive:
         # 自适应权重：固定温度参数为0.5，阈值为0.3
-        adaptive_weights = 1.0 + torch.sigmoid((similarity_other - 0.3) / 0.5)
-        weighted_similarity = similarity_other * adaptive_weights
-        loss_inter = torch.sum(weighted_similarity) / torch.sum(mask)
+        adaptive_weights = 1.0 + torch.sigmoid((similarity_all - 0.3) / 0.5)
+        weighted_similarity = similarity_all * adaptive_weights
+        similarity_other = weighted_similarity * mask
+        loss_inter = torch.sum(similarity_other) / torch.sum(mask)
     else:
         # 原始实现
+        # 仅保留其他类别的相似度
+        similarity_other = similarity_all * mask
         loss_inter = torch.sum(similarity_other) / torch.sum(mask)
 
     return loss_inter        

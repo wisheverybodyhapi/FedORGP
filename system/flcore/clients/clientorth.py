@@ -21,6 +21,7 @@ class clientOrtho(Client):
 
         self.global_protos = None
         self.protos = None
+        self.ablation_client = args.ablation_client
 
     def train(self):
         trainloader = self.load_train_data()
@@ -86,9 +87,14 @@ class clientOrtho(Client):
                     y_c = yy.item()
                     protos[y_c].append(rep[i, :].detach().data)
 
-        # 对每个类别的特征做聚类去除异常值
-        for label in protos:
-            protos[label] = self.filter_outliers_multi_metric(protos[label], alpha=self.alpha)
+
+        if not self.ablation_client:
+            self.logger.write(f"Client {self.id} uses adaptive filtering")
+            # 对每个类别的特征做聚类去除异常值
+            for label in protos:
+                protos[label] = self.filter_outliers_multi_metric(protos[label], alpha=self.alpha)
+        else:
+            self.logger.write(f"Client Ablation: Client {self.id} is not using adaptive filtering")
 
         self.protos = agg_func(protos)
 
@@ -198,10 +204,11 @@ class clientOrtho(Client):
         iqr = q3 - q1
         
         # 固定IQR倍数为1.5（经典异常值检测标准）
-        combined_threshold = q1 - 1.5 * iqr
+        low_threshold = q1 - 1.5 * iqr
+        high_threshold = q3 + 1.5 * iqr
         
         # === 移除冗余的basic_keep，直接使用组合分数 ===
-        keep_idx = combined_scores >= combined_threshold
+        keep_idx = (combined_scores >= low_threshold) & (combined_scores <= high_threshold)
         
         # 防止过度筛选：确保至少保留min_keep_ratio的样本
         n_keep = torch.sum(keep_idx).item()
@@ -222,7 +229,7 @@ class clientOrtho(Client):
     
         # 详细的调试信息
         # self.logger.write(f"Client {self.id} - Adaptive filtering debug:")
-        # self.logger.write(f"  Original: {len(features)}, Filtered: {len(filtered)}, Keep ratio: {len(filtered)/len(features):.2f}")
+        self.logger.write(f"Client {self.id} - Original: {len(features)}, Filtered: {len(filtered)}, Keep ratio: {len(filtered)/len(features):.2f}")
         # self.logger.write(f"  dist_cv: {dist_cv:.4f}, cos_cv: {cos_cv:.4f}, cv_ratio: {cv_ratio:.4f}")
         # self.logger.write(f"  adjustment_factor: {adjustment_factor:.4f}, adaptive_alpha: {adaptive_alpha:.3f}")
         
