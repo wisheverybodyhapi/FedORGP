@@ -22,6 +22,7 @@ from flcore.servers.serverorth import FedOrth
 from flcore.servers.serverktl_stylegan_xl import FedKTL as FedKTL_stylegan_xl
 from flcore.servers.serverktl_stylegan_3 import FedKTL as FedKTL_stylegan_3
 from flcore.servers.serverktl_stable_diffusion import FedKTL as FedKTL_stable_diffusion
+from flcore.servers.servermrl import FedMRL
 
 from utils.result_utils import average_data
 from utils.mem_utils import MemReporter
@@ -61,8 +62,14 @@ def run(args):
             ]
 
         elif args.model_family == "HtFE8":
+            # 根据数据集调整FedAvgCNN的dim参数
+            if args.dataset == "TinyImagenet":
+                fedavgcnn_dim = 10816  # 64x64图像经过卷积后的特征维度
+            else:
+                fedavgcnn_dim = 1600   # 默认维度
+                
             args.models = [
-                'FedAvgCNN(in_features=3, num_classes=args.num_classes, dim=1600)', 
+                f'FedAvgCNN(in_features=3, num_classes=args.num_classes, dim={fedavgcnn_dim})', 
                 'torchvision.models.googlenet(pretrained=False, aux_logits=False, num_classes=args.num_classes)', 
                 'mobilenet_v2(pretrained=False, num_classes=args.num_classes)', 
                 'torchvision.models.resnet18(pretrained=False, num_classes=args.num_classes)', 
@@ -265,7 +272,8 @@ def run(args):
 
         elif args.algorithm == "FedKTL-stable-diffusion":
             server = FedKTL_stable_diffusion(args, i)
-            
+        elif args.algorithm == "FedMRL":
+            server = FedMRL(args, i)
         else:
             raise NotImplementedError
 
@@ -371,6 +379,9 @@ if __name__ == "__main__":
     parser.add_argument('-gbs', "--gen_batch_size", type=int, default=4,
                         help="Not related to the performance. A small value saves GPU memory.")
     parser.add_argument('-mu', "--mu", type=float, default=50.0)
+    # FedMRL
+    parser.add_argument('-sfd', "--sub_feature_dim", type=int, default=128)
+    parser.add_argument('-gm', "--global_model", type=str, default='FedAvgCNN(in_features=3, num_classes=args.num_classes, dim=1600)')
 
     args = parser.parse_args()
 

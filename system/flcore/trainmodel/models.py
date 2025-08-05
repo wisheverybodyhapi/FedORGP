@@ -13,48 +13,55 @@ from flcore.trainmodel.transformer import *
 
 # split an original model into a base and a head
 class BaseHeadSplit(nn.Module):
-    def __init__(self, args, cid):
+    def __init__(self, args, cid=0, feature_dim=None, is_global=False):
         super().__init__()
 
-        self.model_name = args.models[cid % len(args.models)]
-        self.base = eval(self.model_name)
+        if feature_dim is None:
+            feature_dim = args.feature_dim
+            
+        if is_global:
+            self.model_name = args.global_model
+            self.base = eval(args.global_model)
+        else:
+            self.model_name = args.models[cid % len(args.models)]
+            self.base = eval(self.model_name)
 
         # 检查是否为 MNIST 数据集，需要调整输入通道数
         if 'MNIST' in args.dataset:
             self.modify_input_channels()
 
-        if 'Flowers102' in args.dataset and 'FedAvgCNN' in self.model_name:
+        if ('Flowers102' in args.dataset or 'TinyImagenet' in args.dataset) and 'FedAvgCNN' in self.model_name:
             self.base.fc1[0] = nn.Linear(10816, 512)
 
         head = None # you may need more code for pre-existing heterogeneous heads
         if hasattr(self.base, 'heads'):
             head = self.base.heads
-            self.base.heads = nn.AdaptiveAvgPool1d(args.feature_dim)
+            self.base.heads = nn.AdaptiveAvgPool1d(feature_dim)
         elif hasattr(self.base, 'head'):
             head = self.base.head
-            self.base.head = nn.AdaptiveAvgPool1d(args.feature_dim)
+            self.base.head = nn.AdaptiveAvgPool1d(feature_dim)
         elif hasattr(self.base, 'fc'):
             head = self.base.fc
-            self.base.fc = nn.AdaptiveAvgPool1d(args.feature_dim)
+            self.base.fc = nn.AdaptiveAvgPool1d(feature_dim)
         elif hasattr(self.base, 'classifier'):
             head = self.base.classifier
-            self.base.classifier = nn.AdaptiveAvgPool1d(args.feature_dim)
+            self.base.classifier = nn.AdaptiveAvgPool1d(feature_dim)
         elif hasattr(self.base.model, 'classifier'):
-            self.base.model.classifier = nn.AdaptiveAvgPool1d(args.feature_dim)
+            self.base.model.classifier = nn.AdaptiveAvgPool1d(feature_dim)
         else:
             print(f"{self.model_name} does not have a classification head.")
             raise('The base model does not have a classification head.')
 
         if hasattr(args, 'heads'):
             self.head = eval(args.heads[cid % len(args.heads)])
-        elif 'vit' in args.models[cid % len(args.models)]:
+        elif not is_global and 'vit' in args.models[cid % len(args.models)]:
             self.head = nn.Sequential(
-                nn.Linear(args.feature_dim, 768), 
+                nn.Linear(feature_dim, 768), 
                 nn.Tanh(),
                 nn.Linear(768, args.num_classes)
             )
         else:
-            self.head = nn.Linear(args.feature_dim, args.num_classes)
+            self.head = nn.Linear(feature_dim, args.num_classes)
         
     def forward(self, x):
         out = self.base(x)
